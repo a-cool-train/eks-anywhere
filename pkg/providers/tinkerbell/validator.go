@@ -147,6 +147,7 @@ func (v *Validator) ValidateMinimumRequiredTinkerbellHardwareAvailable(spec v1al
 	// isolation of io in the parsing of hardware config.
 
 	requestedNodesCount := spec.ControlPlaneConfiguration.Count +
+<<<<<<< HEAD
 		sumWorkerNodeCounts(spec.WorkerNodeGroupConfigurations)
 
 	// Optional external etcd configuration.
@@ -154,6 +155,11 @@ func (v *Validator) ValidateMinimumRequiredTinkerbellHardwareAvailable(spec v1al
 		requestedNodesCount += spec.ExternalEtcdConfiguration.Count
 	}
 
+=======
+		spec.ExternalEtcdConfiguration.Count +
+		sumWorkerNodeCounts(spec.WorkerNodeGroupConfigurations)
+
+>>>>>>> 4e0148f (Validate requested node provisioninging against available cr hardware (#1238))
 	if len(v.hardwareConfig.Hardwares) < requestedNodesCount {
 		return fmt.Errorf(
 			"have %v tinkerbell hardware; cluster spec requires >= %v hardware",

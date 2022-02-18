@@ -44,6 +44,7 @@ func TestValidateMinimumRequiredTinkerbellHardwareAvailable_InsufficientHardware
 	assert.Error(t, validator.ValidateMinimumRequiredTinkerbellHardwareAvailable(clusterSpec))
 }
 
+<<<<<<< HEAD
 func TestValidateMinimumRequiredTinkerbellHardware_EtcdUnspecified(t *testing.T) {
 	clusterSpec := newValidClusterSpec(1, 0, 1)
 	clusterSpec.ExternalEtcdConfiguration = nil
@@ -56,6 +57,8 @@ func TestValidateMinimumRequiredTinkerbellHardware_EtcdUnspecified(t *testing.T)
 	assert.NoError(t, validator.ValidateMinimumRequiredTinkerbellHardwareAvailable(clusterSpec))
 }
 
+=======
+>>>>>>> 4e0148f (Validate requested node provisioninging against available cr hardware (#1238))
 func newValidClusterSpec(cp, etcd, worker int) v1alpha1.ClusterSpec {
 	return v1alpha1.ClusterSpec{
 		ControlPlaneConfiguration: v1alpha1.ControlPlaneConfiguration{
