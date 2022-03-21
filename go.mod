@@ -51,5 +51,5 @@ replace (
 	github.com/tinkerbell/cluster-api-provider-tinkerbell => github.com/pokearu/cluster-api-provider-tinkerbell v0.0.0-20220128001529-79d851d0861f
 
 	// need the modifications eksa made to the capi api structs
-	sigs.k8s.io/cluster-api => github.com/mrajashree/cluster-api v1.0.3-0.20220301005127-382d70d4a76f
+	sigs.k8s.io/cluster-api => github.com/a-cool-train/cluster-api v1.0.3-custom.0.20220321135508-ebcbebe2dbfe
 )
