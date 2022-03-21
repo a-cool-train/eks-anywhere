@@ -1,6 +1,6 @@
 module github.com/aws/eks-anywhere/release
 
-go 1.16
+go 1.17
 
 require (
 	github.com/aws/aws-sdk-go v1.38.40
