@@ -46,7 +46,7 @@ function build::attribution::generate(){
     $(build::common::get_go_path "$GOLANG_VERSION")/go mod vendor
     build::create_git_tag
     build::fix_licenses
-    build::gather_licenses _output "./cmd/eksctl-anywhere ./controllers"
+    build::gather_licenses _output "./cmd/eksctl-anywhere ./controllers" "$GO"
     build::exclude_own
     build::generate_attribution $GOLANG_VERSION
     # Removing temporary override by resetting remote origin URL to original SSH url 
