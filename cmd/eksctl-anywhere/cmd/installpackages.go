@@ -25,13 +25,16 @@ func init() {
 	if err := installPackageCommand.MarkFlagRequired("source"); err != nil {
 		log.Fatalf("Error marking flag as required: %v", err)
 	}
+	if err := installPackageCommand.MarkFlagRequired("name"); err != nil {
+		log.Fatalf("Error marking flag as required: %v", err)
+	}
 }
 
 var installPackageCommand = &cobra.Command{
 	Use:          "packages [flags]",
 	Aliases:      []string{"package", "packages"},
 	Short:        "Install package(s)",
-	Long:         "This command is used to Install curated ",
+	Long:         "This command is used to Install a curated package. Use list to discover curated packages",
 	PreRunE:      preRunPackages,
 	SilenceUsage: true,
 	RunE:         runInstallPackages(),
@@ -39,12 +42,12 @@ var installPackageCommand = &cobra.Command{
 
 func runInstallPackages() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		source := strings.ToLower(gepo.source)
+		source := strings.ToLower(ipo.source)
 		if err := validateSource(source); err != nil {
 			return err
 		}
 
-		if err := validateKubeVersion(gepo.kubeVersion, source); err != nil {
+		if err := validateKubeVersion(ipo.kubeVersion, source); err != nil {
 			return err
 		}
 
@@ -54,7 +57,7 @@ func runInstallPackages() func(cmd *cobra.Command, args []string) error {
 
 func installPackages(ctx context.Context, ipo *installPackageOptions, args []string) error {
 	kubeConfig := kubeconfig.FromEnvironment()
-	bundle, err := curatedpackages.GetLatestBundle(ctx, kubeConfig, gepo.source, gepo.kubeVersion)
+	bundle, err := curatedpackages.GetLatestBundle(ctx, kubeConfig, ipo.source, ipo.kubeVersion)
 	if err != nil {
 		return err
 	}
