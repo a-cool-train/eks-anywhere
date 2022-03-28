@@ -789,6 +789,10 @@ func WithFile(file string) KubectlOpt {
 	return appendOpt("-f", file)
 }
 
+func WithData(data []byte) KubectlOpt {
+	return appendOpt(string(data))
+}
+
 func appendOpt(new ...string) KubectlOpt {
 	return func(args *[]string) {
 		*args = append(*args, new...)
@@ -1463,38 +1467,11 @@ func (k *Kubectl) GetBmcsPowerState(ctx context.Context, bmcNames []string, kube
 	return strings.Fields(buffer.String()), nil
 }
 
-func (k *Kubectl) ApplyResourcesFromBytes(ctx context.Context, data []byte, kubeConfig string) error {
-	params := []string{"apply", "-f", "-", "--kubeconfig", kubeConfig}
+func (k *Kubectl) ApplyResourcesFromBytes(ctx context.Context, data []byte) error {
+	params := []string{"apply", "-f", "-"}
 	_, err := k.ExecuteWithStdin(ctx, data, params...)
 	if err != nil {
 		return fmt.Errorf("executing apply: %v", err)
 	}
 	return nil
-}
-
-func (k *Kubectl) ApplyResources(ctx context.Context, resource string, opts ...KubectlOpt) error {
-	params := []string{
-		resource,
-	}
-	applyOpts(&params, opts...)
-	_, err := k.Execute(ctx, params...)
-	return err
-}
-
-func (k *Kubectl) DeletePackages(ctx context.Context, opts ...KubectlOpt) error {
-	params := []string{
-		"delete", "packages",
-	}
-	applyOpts(&params, opts...)
-	_, err := k.Execute(ctx, params...)
-	return err
-}
-
-func (k *Kubectl) DescribePackages(ctx context.Context, opts ...KubectlOpt) (bytes.Buffer, error) {
-	params := []string{
-		"describe", "packages",
-	}
-	applyOpts(&params, opts...)
-	stdOut, err := k.Execute(ctx, params...)
-	return stdOut, err
 }
