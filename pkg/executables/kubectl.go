@@ -1546,8 +1546,8 @@ func (k *Kubectl) DescribePackages(ctx context.Context, opts ...KubectlOpt) (byt
 	return stdOut, err
 }
 
-func (k *Kubectl) ApplyResourcesFromBytes(ctx context.Context, data []byte) error {
-	params := []string{"apply", "-f", "-"}
+func (k *Kubectl) ApplyResourcesFromBytes(ctx context.Context, data []byte, kubeConfig string) error {
+	params := []string{"apply", "-f", "-", "--kubeconfig", kubeConfig}
 	_, err := k.ExecuteWithStdin(ctx, data, params...)
 	if err != nil {
 		return fmt.Errorf("executing apply: %v", err)
