@@ -3,6 +3,7 @@ package curatedpackages
 import (
 	"context"
 	"fmt"
+	"github.com/aws/eks-anywhere/pkg/executables"
 	"os"
 	"path/filepath"
 	"strings"
@@ -109,7 +110,18 @@ func InstallPackage(ctx context.Context, bp *api.BundlePackage, b *api.PackageBu
 		return err
 	}
 	err = kubectl.ApplyResourcesFromBytes(ctx, packageYaml, kubeConfig)
-	return nil
+	return err
+}
+
+func ApplyResource(ctx context.Context, resource string, fileName string, kubeConfig string) error {
+	deps, err := newDependencies(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to initialize executables: %v", err)
+	}
+	kubectl := deps.Kubectl
+	params := []executables.KubectlOpt{executables.WithKubeconfig(kubeConfig), executables.WithFile(fileName)}
+	err = kubectl.ApplyResources(ctx, resource, params...)
+	return err
 }
 
 func getPackageNameToPackage(packages []api.BundlePackage) map[string]api.BundlePackage {
