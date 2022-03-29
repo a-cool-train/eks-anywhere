@@ -124,6 +124,17 @@ func ApplyResource(ctx context.Context, resource string, fileName string, kubeCo
 	return err
 }
 
+func DeletePackages(ctx context.Context, args []string, kubeConfig string) error {
+	deps, err := newDependencies(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to initialize executables: %v", err)
+	}
+	kubectl := deps.Kubectl
+	params := []executables.KubectlOpt{executables.WithKubeconfig(kubeConfig), executables.WithArgs(args)}
+	err = kubectl.DeletePackages(ctx, params...)
+	return err
+}
+
 func getPackageNameToPackage(packages []api.BundlePackage) map[string]api.BundlePackage {
 	pntop := make(map[string]api.BundlePackage)
 	for _, p := range packages {

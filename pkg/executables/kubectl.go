@@ -1480,3 +1480,12 @@ func (k *Kubectl) ApplyResources(ctx context.Context, resource string, opts ...K
 	_, err := k.Execute(ctx, params...)
 	return err
 }
+
+func (k *Kubectl) DeletePackages(ctx context.Context, opts ...KubectlOpt) error {
+	params := []string{
+		"delete", "packages",
+	}
+	applyOpts(&params, opts...)
+	_, err := k.Execute(ctx, params...)
+	return err
+}
