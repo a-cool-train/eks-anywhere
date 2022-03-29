@@ -1536,3 +1536,12 @@ func (k *Kubectl) DeletePackages(ctx context.Context, opts ...KubectlOpt) error 
 	_, err := k.Execute(ctx, params...)
 	return err
 }
+
+func (k *Kubectl) DescribePackages(ctx context.Context, opts ...KubectlOpt) (bytes.Buffer, error) {
+	params := []string{
+		"describe", "packages",
+	}
+	applyOpts(&params, opts...)
+	stdOut, err := k.Execute(ctx, params...)
+	return stdOut, err
+}
