@@ -1,6 +1,7 @@
 package curatedpackages
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -50,12 +51,13 @@ func GeneratePackages(bundle *api.PackageBundle, args []string) ([]api.Package, 
 	packageNameToPackage := getPackageNameToPackage(bundle.Spec.Packages)
 	var packages []api.Package
 	for _, v := range args {
-		bundlePackage := packageNameToPackage[strings.ToLower(v)]
-		if bundlePackage.Name == "" {
+		bp := packageNameToPackage[strings.ToLower(v)]
+		if bp.Name == "" {
 			fmt.Println(fmt.Errorf("unknown package %s", v).Error())
 			continue
 		}
-		packages = append(packages, convertBundlePackageToPackage(bundlePackage, bundle.APIVersion))
+		packageName := customName + strings.ToLower(bp.Name)
+		packages = append(packages, convertBundlePackageToPackage(bp, packageName, bundle.APIVersion))
 	}
 	return packages, nil
 }
@@ -85,6 +87,31 @@ func writeToFile(dir string, packageName string, content []byte) {
 	}
 }
 
+func GetPackageFromBundle(bundle *api.PackageBundle, packageName string) (*api.BundlePackage, error) {
+	packagesInBundle := bundle.Spec.Packages
+	pntop := getPackageNameToPackage(packagesInBundle)
+	p := pntop[strings.ToLower(packageName)]
+	if p.Name != "" {
+		return &p, nil
+	}
+	return nil, fmt.Errorf("package %s not found", packageName)
+}
+
+func InstallPackage(ctx context.Context, bp *api.BundlePackage, b *api.PackageBundle, customName string, kubeConfig string) error {
+	p := convertBundlePackageToPackage(*bp, customName, b.APIVersion)
+	deps, err := newDependencies(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to initialize executables: %v", err)
+	}
+	kubectl := deps.Kubectl
+	packageYaml, err := yaml.Marshal(p)
+	if err != nil {
+		return err
+	}
+	err = kubectl.ApplyResourcesFromBytes(ctx, packageYaml, kubeConfig)
+	return nil
+}
+
 func getPackageNameToPackage(packages []api.BundlePackage) map[string]api.BundlePackage {
 	pntop := make(map[string]api.BundlePackage)
 	for _, p := range packages {
@@ -93,7 +120,7 @@ func getPackageNameToPackage(packages []api.BundlePackage) map[string]api.Bundle
 	return pntop
 }
 
-func convertBundlePackageToPackage(bp api.BundlePackage, apiVersion string) api.Package {
+func convertBundlePackageToPackage(bp api.BundlePackage, name string, apiVersion string) api.Package {
 	versionToUse := bp.Source.Versions[0]
 	p := api.Package{
 		ObjectMeta: metav1.ObjectMeta{

@@ -2,15 +2,16 @@ package cmd
 
 import (
 	"context"
+	"log"
+
+	"github.com/spf13/cobra"
+
 	"github.com/aws/eks-anywhere/pkg/curatedpackages"
 	"github.com/aws/eks-anywhere/pkg/kubeconfig"
-	"github.com/spf13/cobra"
-	"log"
-	"strings"
 )
 
 type installPackageOptions struct {
-	source      string
+	source      curatedpackages.BundleSource
 	kubeVersion string
 	name        string
 }
@@ -19,7 +20,7 @@ var ipo = &installPackageOptions{}
 
 func init() {
 	installCmd.AddCommand(installPackageCommand)
-	installPackageCommand.Flags().StringVar(&ipo.source, "source", "", "Location to find curated packages: (cluster, registry)")
+	installPackageCommand.Flags().Var(&ipo.source, "source", "Location to find curated packages: (cluster, registry)")
 	installPackageCommand.Flags().StringVar(&ipo.kubeVersion, "kubeversion", "", "Kubernetes Version of the cluster to be used. Format <major>.<minor>")
 	installPackageCommand.Flags().StringVar(&ipo.name, "name", "", "Custom name of the curated package to install")
 	if err := installPackageCommand.MarkFlagRequired("source"); err != nil {
@@ -42,12 +43,8 @@ var installPackageCommand = &cobra.Command{
 
 func runInstallPackages() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		source := strings.ToLower(ipo.source)
-		if err := validateSource(source); err != nil {
-			return err
-		}
 
-		if err := validateKubeVersion(ipo.kubeVersion, source); err != nil {
+		if err := validateKubeVersion(ipo.kubeVersion, ipo.source); err != nil {
 			return err
 		}
 
