@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/go-logr/logr"
 
@@ -21,7 +20,7 @@ const (
 	RegistryBaseRef = "public.ecr.aws/q0f6t3x4/eksa-package-bundles"
 )
 
-func GetLatestBundle(ctx context.Context, kubeConfig string, source BundleSource, kubeVersion string) (*api.PackageBundle, error) {
+func getLatestBundle(ctx context.Context, kubeConfig string, source bundleSource, kubeVersion kubeVersion) (*api.PackageBundle, error) {
 	switch source {
 	case Cluster:
 		return getActiveBundleFromCluster(ctx, kubeConfig)
@@ -32,16 +31,14 @@ func GetLatestBundle(ctx context.Context, kubeConfig string, source BundleSource
 	}
 }
 
-func createBundleManager(kubeVersion string) bundle.Manager {
-	versionSplit := strings.Split(kubeVersion, ".")
-	major, minor := versionSplit[0], versionSplit[1]
+func createBundleManager(kubeVersion kubeVersion) bundle.Manager {
 	log := logr.Discard()
-	discovery := testutil.NewFakeDiscovery(major, minor)
+	discovery := testutil.NewFakeDiscovery(kubeVersion.Major, kubeVersion.Minor)
 	puller := artifacts.NewRegistryPuller()
 	return bundle.NewBundleManager(log, discovery, puller)
 }
 
-func getLatestBundleFromRegistry(ctx context.Context, kubeVersion string) (*api.PackageBundle, error) {
+func getLatestBundleFromRegistry(ctx context.Context, kubeVersion kubeVersion) (*api.PackageBundle, error) {
 	bm := createBundleManager(kubeVersion)
 	return bm.LatestBundle(ctx, RegistryBaseRef)
 }

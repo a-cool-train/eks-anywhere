@@ -1,12 +1,14 @@
 package curatedpackages
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
 	"text/tabwriter"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere/pkg/kubeconfig"
 )
 
 const (
@@ -35,4 +37,15 @@ func convertBundleVersionToPackageVersion(bundleVersions []api.SourceVersion) []
 		versions = append(versions, v.Name)
 	}
 	return versions
+}
+
+func ListPackages(ctx context.Context, src BundleSource, kv KubeVersion) error {
+	kubeConfig := kubeconfig.FromEnvironment()
+	bundle, err := getLatestBundle(ctx, kubeConfig, src.bundleSource, kv.kubeVersion)
+	if err != nil {
+		return err
+	}
+	packages := bundle.Spec.Packages
+	DisplayPackages(packages)
+	return nil
 }

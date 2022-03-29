@@ -3,29 +3,45 @@ package curatedpackages
 import (
 	"fmt"
 	"strings"
+
+	"github.com/spf13/pflag"
 )
 
-type BundleSource string
+// BundleSource specifies a source for pulling package bundle information.
+//
+// It implements pflag.Value, and expects the caller to call Set to change its
+// value from it's default invalid state, to a valid state.
+type BundleSource struct {
+	bundleSource // wrapped so that this value is hidden
+}
+
+var _ pflag.Value = (*BundleSource)(nil)
+
+type bundleSource string
 
 const (
-	Cluster  = "cluster"
-	Registry = "registry"
+	// Cluster indicates that bundles should be retrieved from a cluster.
+	Cluster bundleSource = "cluster"
+	// Registry indicates that bundles should be retrieved from a registry.
+	Registry bundleSource = "registry"
 )
 
-func (b BundleSource) String() string {
+func (b bundleSource) String() string {
 	return string(b)
 }
 
-func (b *BundleSource) Set(s string) error {
-	switch strings.ToLower(s) {
+// Set parses user input into a valid bundle source.
+func (b *bundleSource) Set(s string) error {
+	src := bundleSource(strings.ToLower(strings.TrimSpace(s)))
+	switch src {
 	case Cluster, Registry:
-		*b = BundleSource(s)
+		*b = src
 	default:
-		return fmt.Errorf("unknown source: %q", s)
+		return fmt.Errorf("unknown bundle source: %q", s)
 	}
 	return nil
 }
 
-func (b BundleSource) Type() string {
+func (b bundleSource) Type() string {
 	return "BundleSource"
 }
