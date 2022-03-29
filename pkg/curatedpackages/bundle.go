@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sigs.k8s.io/yaml"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -54,7 +55,7 @@ func getActiveBundleFromCluster(ctx context.Context, kubeConfig string) (*api.Pa
 	kubectl := deps.Kubectl
 
 	// Active Bundle is set at the bundle Controller
-	bundleController, err := getActiveController(ctx, kubectl, kubeConfig)
+	bundleController, err := GetActiveController(ctx, kubectl, kubeConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +79,7 @@ func getPackageBundle(ctx context.Context, kubectl *executables.Kubectl, kubeCon
 	return obj, nil
 }
 
-func getActiveController(ctx context.Context, kubectl *executables.Kubectl, kubeConfig string) (*api.PackageBundleController, error) {
+func GetActiveController(ctx context.Context, kubectl *executables.Kubectl, kubeConfig string) (*api.PackageBundleController, error) {
 	params := []executables.KubectlOpt{executables.WithOutput("json"), executables.WithKubeconfig(kubeConfig), executables.WithNamespace(constants.EksaPackagesName), executables.WithArg(bundle.PackageBundleControllerName)}
 	stdOut, err := kubectl.GetResources(ctx, "packageBundleController", params...)
 	if err != nil {
@@ -89,6 +90,19 @@ func getActiveController(ctx context.Context, kubectl *executables.Kubectl, kube
 		return nil, fmt.Errorf("unmarshaling active package bundle controller: %w", err)
 	}
 	return obj, nil
+}
+
+func UpgradeBundle(ctx context.Context, controller *api.PackageBundleController, k *executables.Kubectl, newBundle string, kubeConfig string) error {
+	controller.Spec.ActiveBundle = newBundle
+	controllerYaml, err := yaml.Marshal(controller)
+	if err != nil {
+		return err
+	}
+	err = k.ApplyResourcesFromBytes(ctx, controllerYaml, kubeConfig)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func newDependencies(ctx context.Context) (*dependencies.Dependencies, error) {
