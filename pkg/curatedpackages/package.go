@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/aws/eks-anywhere/pkg/executables"
+	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -133,6 +134,26 @@ func DeletePackages(ctx context.Context, args []string, kubeConfig string) error
 	params := []executables.KubectlOpt{executables.WithKubeconfig(kubeConfig), executables.WithArgs(args)}
 	err = kubectl.DeletePackages(ctx, params...)
 	return err
+}
+
+func DescribePackages(ctx context.Context, args []string, kubeConfig string) error {
+	deps, err := newDependencies(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to initialize executables: %v", err)
+	}
+	kubectl := deps.Kubectl
+	params := []executables.KubectlOpt{executables.WithKubeconfig(kubeConfig), executables.WithArgs(args)}
+	stdOut, err := kubectl.DescribePackages(ctx, params...)
+	if err != nil {
+		fmt.Print(&stdOut)
+		return fmt.Errorf("kubectl execution failure: \n%v", err)
+	}
+	if len(stdOut.Bytes()) == 0 {
+		errors.New("No resources found")
+		return nil
+	}
+	fmt.Println(&stdOut)
+	return nil
 }
 
 func getPackageNameToPackage(packages []api.BundlePackage) map[string]api.BundlePackage {
