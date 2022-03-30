@@ -3,15 +3,17 @@ package curatedpackages
 import (
 	"context"
 	"fmt"
-	"github.com/aws/eks-anywhere/pkg/executables"
-	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/tabwriter"
 
+	"github.com/pkg/errors"
+	"sigs.k8s.io/yaml"
+
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere/pkg/constants"
+	"github.com/aws/eks-anywhere/pkg/executables"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 )
@@ -168,7 +170,7 @@ func convertBundlePackageToPackage(bp api.BundlePackage, name string, apiVersion
 	versionToUse := bp.Source.Versions[0]
 	p := api.Package{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      customName + strings.ToLower(bp.Name),
+			Name:      name,
 			Namespace: constants.EksaPackagesName,
 		},
 		TypeMeta: metav1.TypeMeta{
