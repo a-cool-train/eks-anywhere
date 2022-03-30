@@ -131,7 +131,7 @@ func DeletePackages(ctx context.Context, args []string, kubeConfig string) error
 		return fmt.Errorf("unable to initialize executables: %v", err)
 	}
 	kubectl := deps.Kubectl
-	params := []executables.KubectlOpt{executables.WithKubeconfig(kubeConfig), executables.WithArgs(args)}
+	params := []executables.KubectlOpt{executables.WithKubeconfig(kubeConfig), executables.WithArgs(args), executables.WithNamespace(constants.EksaPackagesName)}
 	err = kubectl.DeletePackages(ctx, params...)
 	return err
 }
@@ -142,7 +142,7 @@ func DescribePackages(ctx context.Context, args []string, kubeConfig string) err
 		return fmt.Errorf("unable to initialize executables: %v", err)
 	}
 	kubectl := deps.Kubectl
-	params := []executables.KubectlOpt{executables.WithKubeconfig(kubeConfig), executables.WithArgs(args)}
+	params := []executables.KubectlOpt{executables.WithKubeconfig(kubeConfig), executables.WithArgs(args), executables.WithNamespace(constants.EksaPackagesName)}
 	stdOut, err := kubectl.DescribePackages(ctx, params...)
 	if err != nil {
 		fmt.Print(&stdOut)
