@@ -167,7 +167,6 @@ func getPackageNameToPackage(packages []api.BundlePackage) map[string]api.Bundle
 }
 
 func convertBundlePackageToPackage(bp api.BundlePackage, name string, apiVersion string) api.Package {
-	versionToUse := bp.Source.Versions[0]
 	p := api.Package{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -179,7 +178,6 @@ func convertBundlePackageToPackage(bp api.BundlePackage, name string, apiVersion
 		},
 		Spec: api.PackageSpec{
 			PackageName:     bp.Name,
-			PackageVersion:  versionToUse.Name,
 			TargetNamespace: constants.EksaPackagesName,
 		},
 	}
