@@ -100,7 +100,7 @@ func UpgradeBundle(ctx context.Context, controller *api.PackageBundleController,
 		return err
 	}
 	params := []executables.KubectlOpt{executables.WithArg("apply"), executables.WithFile("-"), executables.WithKubeconfig(kubeConfig)}
-	err = k.ApplyResourcesFromBytes(ctx, controllerYaml, params...)
+	_, err = k.ApplyResourcesFromBytes(ctx, controllerYaml, params...)
 	if err != nil {
 		return err
 	}
