@@ -40,12 +40,12 @@ var upgradePackagesCommand = &cobra.Command{
 }
 
 func upgradePackages(ctx context.Context) error {
-	deps, err := newDependencies(ctx)
+	kubeConfig := kubeconfig.FromEnvironment()
+	deps, err := newDependencies(ctx, kubeConfig)
 	if err != nil {
 		return fmt.Errorf("unable to initialize executables: %v", err)
 	}
 	kubectl := deps.Kubectl
-	kubeConfig := kubeconfig.FromEnvironment()
 	activeController, err := curatedpackages.GetActiveController(ctx, kubectl, kubeConfig)
 	if err != nil {
 		return err

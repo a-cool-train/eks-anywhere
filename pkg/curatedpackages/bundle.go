@@ -68,7 +68,7 @@ func getActiveBundleFromCluster(ctx context.Context, kubeConfig string) (*api.Pa
 }
 
 func getPackageBundle(ctx context.Context, kubectl *executables.Kubectl, kubeConfig string, activeBundle string) (*api.PackageBundle, error) {
-	params := []executables.KubectlOpt{executables.WithArg("packageBundle"), executables.WithOutput("json"), executables.WithKubeconfig(kubeConfig), executables.WithNamespace(constants.EksaPackagesName), executables.WithArg(activeBundle)}
+	params := []executables.KubectlOpt{executables.WithArg("get"), executables.WithArg("packageBundle"), executables.WithOutput("json"), executables.WithKubeconfig(kubeConfig), executables.WithNamespace(constants.EksaPackagesName), executables.WithArg(activeBundle)}
 	stdOut, err := kubectl.ApplyResources(ctx, params...)
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func getPackageBundle(ctx context.Context, kubectl *executables.Kubectl, kubeCon
 }
 
 func GetActiveController(ctx context.Context, kubectl *executables.Kubectl, kubeConfig string) (*api.PackageBundleController, error) {
-	params := []executables.KubectlOpt{executables.WithArg("packageBundleController"), executables.WithOutput("json"), executables.WithKubeconfig(kubeConfig), executables.WithNamespace(constants.EksaPackagesName), executables.WithArg(bundle.PackageBundleControllerName)}
+	params := []executables.KubectlOpt{executables.WithArg("get"), executables.WithArg("packageBundleController"), executables.WithOutput("json"), executables.WithKubeconfig(kubeConfig), executables.WithNamespace(constants.EksaPackagesName), executables.WithArg(bundle.PackageBundleControllerName)}
 	stdOut, err := kubectl.ApplyResources(ctx, params...)
 	if err != nil {
 		return nil, err
