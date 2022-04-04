@@ -72,7 +72,6 @@ func WritePackagesToFile(packages []api.Package, d string) error {
 			return fmt.Errorf("unable to create directory %s", directory)
 		}
 	}
-
 	for _, p := range packages {
 		displayPackage := NewDisplayPackage(p)
 		content, err := yaml.Marshal(displayPackage)
@@ -80,16 +79,20 @@ func WritePackagesToFile(packages []api.Package, d string) error {
 			fmt.Println(fmt.Errorf("unable to parse package %s %v", p.Name, err).Error())
 			continue
 		}
-		writeToFile(directory, p.Name, content)
+		err = writeToFile(directory, p.Name, content)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
 	}
 	return nil
 }
 
-func writeToFile(dir string, packageName string, content []byte) {
+func writeToFile(dir string, packageName string, content []byte) error {
 	file := filepath.Join(dir, packageName) + ".yaml"
 	if err := os.WriteFile(file, content, filePermission); err != nil {
-		fmt.Println(fmt.Errorf("unable to write to the file: %s %v", file, err))
+		return fmt.Errorf("unable to write to the file: %s %v", file, err)
 	}
+	return nil
 }
 
 func GetPackageFromBundle(bundle *api.PackageBundle, packageName string) (*api.BundlePackage, error) {
@@ -113,8 +116,13 @@ func InstallPackage(ctx context.Context, bp *api.BundlePackage, b *api.PackageBu
 	if err != nil {
 		return err
 	}
-	err = kubectl.ApplyResourcesFromBytes(ctx, packageYaml)
-	return err
+	params := []executables.KubectlOpt{executables.WithArg("create"), executables.WithFile("-"), executables.WithKubeconfig(kubeConfig)}
+	stdOut, err := kubectl.ApplyResourcesFromBytes(ctx, packageYaml, params...)
+	if err != nil {
+		return err
+	}
+	fmt.Println(&stdOut)
+	return nil
 }
 
 func ApplyResource(ctx context.Context, resource string, fileName string, kubeConfig string) error {
@@ -124,8 +132,12 @@ func ApplyResource(ctx context.Context, resource string, fileName string, kubeCo
 	}
 	kubectl := deps.Kubectl
 	params := []executables.KubectlOpt{executables.WithArg(resource), executables.WithKubeconfig(kubeConfig), executables.WithFile(fileName)}
-	_, err = kubectl.ApplyResources(ctx, params...)
-	return err
+	stdOut, err := kubectl.ApplyResources(ctx, params...)
+	if err != nil {
+		return err
+	}
+	fmt.Println(&stdOut)
+	return nil
 }
 
 func DeletePackages(ctx context.Context, args []string, kubeConfig string) error {
@@ -135,8 +147,12 @@ func DeletePackages(ctx context.Context, args []string, kubeConfig string) error
 	}
 	kubectl := deps.Kubectl
 	params := []executables.KubectlOpt{executables.WithArg("delete"), executables.WithArg("packages"), executables.WithKubeconfig(kubeConfig), executables.WithArgs(args), executables.WithNamespace(constants.EksaPackagesName)}
-	_, err = kubectl.ApplyResources(ctx, params...)
-	return err
+	stdOut, err := kubectl.ApplyResources(ctx, params...)
+	if err != nil {
+		return err
+	}
+	fmt.Println(&stdOut)
+	return nil
 }
 
 func DescribePackages(ctx context.Context, args []string, kubeConfig string) error {
