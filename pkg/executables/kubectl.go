@@ -1420,13 +1420,6 @@ func (k *Kubectl) GetDaemonSet(ctx context.Context, name, namespace, kubeconfig 
 	return obj, nil
 }
 
-func (k *Kubectl) ApplyResourcesFromBytes(ctx context.Context, data []byte, opts ...KubectlOpt) (bytes.Buffer, error) {
-	var params []string
-	applyOpts(&params, opts...)
-	stdOut, err := k.ExecuteWithStdin(ctx, data, params...)
-	return stdOut, err
-}
-
 // GetHardwareWithLabel gets the hardwares with given label.
 func (k *Kubectl) GetHardwareWithLabel(ctx context.Context, label, kubeconfigFile, namespace string) ([]tinkv1alpha1.Hardware, error) {
 	params := []string{
@@ -1464,8 +1457,8 @@ func (k *Kubectl) GetBmcsPowerState(ctx context.Context, bmcNames []string, kube
 func (k *Kubectl) ApplyResourcesFromBytes(ctx context.Context, data []byte, opts ...KubectlOpt) error {
 	var params []string
 	applyOpts(&params, opts...)
-	_, err := k.ExecuteWithStdin(ctx, data, params...)
-	return fmt.Errorf("executing apply: %v", err)
+	stdOut, err := k.ExecuteWithStdin(ctx, data, params...)
+	return stdOut, err
 }
 
 func (k *Kubectl) ApplyResources(ctx context.Context, opts ...KubectlOpt) (bytes.Buffer, error) {
