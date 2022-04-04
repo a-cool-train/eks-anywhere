@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"path"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -56,8 +57,7 @@ func getResources(ctx context.Context, resourceType string, output string, args 
 		return fmt.Errorf("kubectl execution failure: \n%v", err)
 	}
 	if len(stdOut.Bytes()) == 0 {
-		fmt.Printf("No resources found in %v namespace\n", constants.EksaPackagesName)
-		return nil
+		return fmt.Errorf("No resources found in %v namespace\n", constants.EksaPackagesName)
 	}
 	fmt.Print(&stdOut)
 	return nil
