@@ -3,6 +3,7 @@ package curatedpackages
 import (
 	"context"
 	"fmt"
+	"github.com/aws/eks-anywhere/pkg/validations"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,7 +15,6 @@ import (
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere/pkg/constants"
 	"github.com/aws/eks-anywhere/pkg/executables"
-	"github.com/aws/eks-anywhere/pkg/validations"
 )
 
 const (
