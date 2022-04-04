@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
-	"sigs.k8s.io/yaml"
 	"strings"
 
 	"github.com/go-logr/logr"
+	"sigs.k8s.io/yaml"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/artifacts"
