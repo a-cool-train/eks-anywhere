@@ -126,7 +126,7 @@ func InstallPackage(ctx context.Context, bp *api.BundlePackage, b *api.PackageBu
 }
 
 func ApplyResource(ctx context.Context, resource string, fileName string, kubeConfig string) error {
-	deps, err := newDependencies(ctx, kubeConfig)
+	deps, err := newDependencies(ctx, filepath.Dir(kubeConfig), filepath.Dir(fileName))
 	if err != nil {
 		return fmt.Errorf("unable to initialize executables: %v", err)
 	}

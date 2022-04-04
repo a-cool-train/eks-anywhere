@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -49,7 +49,7 @@ func getLatestBundleFromRegistry(ctx context.Context, kubeVersion string) (*api.
 }
 
 func getActiveBundleFromCluster(ctx context.Context, kubeConfig string) (*api.PackageBundle, error) {
-	deps, err := newDependencies(ctx, kubeConfig)
+	deps, err := newDependencies(ctx, filepath.Dir(kubeConfig))
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize executables: %v", err)
 	}
@@ -107,10 +107,10 @@ func UpgradeBundle(ctx context.Context, controller *api.PackageBundleController,
 	return nil
 }
 
-func newDependencies(ctx context.Context, kubeConfig string) (*dependencies.Dependencies, error) {
+func newDependencies(ctx context.Context, paths ...string) (*dependencies.Dependencies, error) {
 	return dependencies.NewFactory().
 		WithExecutableImage(executables.DefaultEksaImage()).
-		WithExecutableMountDirs(path.Dir(kubeConfig)).
+		WithExecutableMountDirs(paths...).
 		WithExecutableBuilder().
 		WithKubectl().
 		Build(ctx)
