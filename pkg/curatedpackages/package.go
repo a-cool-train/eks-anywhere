@@ -113,7 +113,7 @@ func InstallPackage(ctx context.Context, bp *api.BundlePackage, b *api.PackageBu
 	if err != nil {
 		return err
 	}
-	err = kubectl.ApplyResourcesFromBytes(ctx, packageYaml, kubeConfig)
+	err = kubectl.ApplyResourcesFromBytes(ctx, packageYaml)
 	return err
 }
 
