@@ -3,19 +3,18 @@ package curatedpackages
 import (
 	"context"
 	"fmt"
+	"github.com/aws/eks-anywhere/pkg/validations"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/tabwriter"
 
-	"github.com/pkg/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere/pkg/constants"
 	"github.com/aws/eks-anywhere/pkg/executables"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/yaml"
 )
 
 const (
@@ -68,8 +67,10 @@ func GeneratePackages(bundle *api.PackageBundle, args []string) ([]api.Package, 
 
 func WritePackagesToFile(packages []api.Package, d string) error {
 	directory := filepath.Join(d, packageLocation)
-	if err := os.Mkdir(directory, dirPermission); err != nil {
-		return fmt.Errorf("unable to create directory %s", directory)
+	if !validations.FileExists(directory) {
+		if err := os.Mkdir(directory, dirPermission); err != nil {
+			return fmt.Errorf("unable to create directory %s", directory)
+		}
 	}
 
 	for _, p := range packages {
@@ -103,7 +104,7 @@ func GetPackageFromBundle(bundle *api.PackageBundle, packageName string) (*api.B
 
 func InstallPackage(ctx context.Context, bp *api.BundlePackage, b *api.PackageBundle, customName string, kubeConfig string) error {
 	p := convertBundlePackageToPackage(*bp, customName, b.APIVersion)
-	deps, err := newDependencies(ctx)
+	deps, err := newDependencies(ctx, kubeConfig)
 	if err != nil {
 		return fmt.Errorf("unable to initialize executables: %v", err)
 	}
@@ -117,42 +118,41 @@ func InstallPackage(ctx context.Context, bp *api.BundlePackage, b *api.PackageBu
 }
 
 func ApplyResource(ctx context.Context, resource string, fileName string, kubeConfig string) error {
-	deps, err := newDependencies(ctx)
+	deps, err := newDependencies(ctx, kubeConfig)
 	if err != nil {
 		return fmt.Errorf("unable to initialize executables: %v", err)
 	}
 	kubectl := deps.Kubectl
-	params := []executables.KubectlOpt{executables.WithKubeconfig(kubeConfig), executables.WithFile(fileName)}
-	err = kubectl.ApplyResources(ctx, resource, params...)
+	params := []executables.KubectlOpt{executables.WithArg(resource), executables.WithKubeconfig(kubeConfig), executables.WithFile(fileName)}
+	_, err = kubectl.ApplyResources(ctx, params...)
 	return err
 }
 
 func DeletePackages(ctx context.Context, args []string, kubeConfig string) error {
-	deps, err := newDependencies(ctx)
+	deps, err := newDependencies(ctx, kubeConfig)
 	if err != nil {
 		return fmt.Errorf("unable to initialize executables: %v", err)
 	}
 	kubectl := deps.Kubectl
-	params := []executables.KubectlOpt{executables.WithKubeconfig(kubeConfig), executables.WithArgs(args), executables.WithNamespace(constants.EksaPackagesName)}
-	err = kubectl.DeletePackages(ctx, params...)
+	params := []executables.KubectlOpt{executables.WithArg("delete"), executables.WithArg("packages"), executables.WithKubeconfig(kubeConfig), executables.WithArgs(args), executables.WithNamespace(constants.EksaPackagesName)}
+	_, err = kubectl.ApplyResources(ctx, params...)
 	return err
 }
 
 func DescribePackages(ctx context.Context, args []string, kubeConfig string) error {
-	deps, err := newDependencies(ctx)
+	deps, err := newDependencies(ctx, kubeConfig)
 	if err != nil {
 		return fmt.Errorf("unable to initialize executables: %v", err)
 	}
 	kubectl := deps.Kubectl
-	params := []executables.KubectlOpt{executables.WithKubeconfig(kubeConfig), executables.WithArgs(args), executables.WithNamespace(constants.EksaPackagesName)}
-	stdOut, err := kubectl.DescribePackages(ctx, params...)
+	params := []executables.KubectlOpt{executables.WithArg("describe"), executables.WithArg("packages"), executables.WithKubeconfig(kubeConfig), executables.WithArgs(args), executables.WithNamespace(constants.EksaPackagesName)}
+	stdOut, err := kubectl.ApplyResources(ctx, params...)
 	if err != nil {
 		fmt.Print(&stdOut)
 		return fmt.Errorf("kubectl execution failure: \n%v", err)
 	}
 	if len(stdOut.Bytes()) == 0 {
-		errors.New("No resources found")
-		return nil
+		return fmt.Errorf("no resources found in %s", constants.EksaPackagesName)
 	}
 	fmt.Println(&stdOut)
 	return nil

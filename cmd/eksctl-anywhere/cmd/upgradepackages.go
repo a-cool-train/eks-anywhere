@@ -3,11 +3,12 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/aws/eks-anywhere/pkg/curatedpackages"
-	"github.com/aws/eks-anywhere/pkg/kubeconfig"
 	"log"
 
 	"github.com/spf13/cobra"
+
+	"github.com/aws/eks-anywhere/pkg/curatedpackages"
+	"github.com/aws/eks-anywhere/pkg/kubeconfig"
 )
 
 type upgradePackageOptions struct {
@@ -39,7 +40,7 @@ var upgradePackagesCommand = &cobra.Command{
 }
 
 func upgradePackages(ctx context.Context) error {
-	deps, err := createKubectl(ctx)
+	deps, err := newDependencies(ctx)
 	if err != nil {
 		return fmt.Errorf("unable to initialize executables: %v", err)
 	}

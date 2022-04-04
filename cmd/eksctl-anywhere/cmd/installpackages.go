@@ -43,7 +43,6 @@ var installPackageCommand = &cobra.Command{
 
 func runInstallPackages() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-
 		if err := validateKubeVersion(ipo.kubeVersion, ipo.source); err != nil {
 			return err
 		}

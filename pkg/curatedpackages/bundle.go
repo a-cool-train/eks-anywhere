@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path"
 	"sigs.k8s.io/yaml"
 	"strings"
 
@@ -48,7 +49,7 @@ func getLatestBundleFromRegistry(ctx context.Context, kubeVersion string) (*api.
 }
 
 func getActiveBundleFromCluster(ctx context.Context, kubeConfig string) (*api.PackageBundle, error) {
-	deps, err := newDependencies(ctx)
+	deps, err := newDependencies(ctx, kubeConfig)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize executables: %v", err)
 	}
@@ -67,8 +68,8 @@ func getActiveBundleFromCluster(ctx context.Context, kubeConfig string) (*api.Pa
 }
 
 func getPackageBundle(ctx context.Context, kubectl *executables.Kubectl, kubeConfig string, activeBundle string) (*api.PackageBundle, error) {
-	params := []executables.KubectlOpt{executables.WithOutput("json"), executables.WithKubeconfig(kubeConfig), executables.WithNamespace(constants.EksaPackagesName), executables.WithArg(activeBundle)}
-	stdOut, err := kubectl.GetResources(ctx, "packageBundle", params...)
+	params := []executables.KubectlOpt{executables.WithArg("packageBundle"), executables.WithOutput("json"), executables.WithKubeconfig(kubeConfig), executables.WithNamespace(constants.EksaPackagesName), executables.WithArg(activeBundle)}
+	stdOut, err := kubectl.ApplyResources(ctx, params...)
 	if err != nil {
 		return nil, err
 	}
@@ -80,8 +81,8 @@ func getPackageBundle(ctx context.Context, kubectl *executables.Kubectl, kubeCon
 }
 
 func GetActiveController(ctx context.Context, kubectl *executables.Kubectl, kubeConfig string) (*api.PackageBundleController, error) {
-	params := []executables.KubectlOpt{executables.WithOutput("json"), executables.WithKubeconfig(kubeConfig), executables.WithNamespace(constants.EksaPackagesName), executables.WithArg(bundle.PackageBundleControllerName)}
-	stdOut, err := kubectl.GetResources(ctx, "packageBundleController", params...)
+	params := []executables.KubectlOpt{executables.WithArg("packageBundleController"), executables.WithOutput("json"), executables.WithKubeconfig(kubeConfig), executables.WithNamespace(constants.EksaPackagesName), executables.WithArg(bundle.PackageBundleControllerName)}
+	stdOut, err := kubectl.ApplyResources(ctx, params...)
 	if err != nil {
 		return nil, err
 	}
@@ -98,16 +99,18 @@ func UpgradeBundle(ctx context.Context, controller *api.PackageBundleController,
 	if err != nil {
 		return err
 	}
-	err = k.ApplyResourcesFromBytes(ctx, controllerYaml, kubeConfig)
+	params := []executables.KubectlOpt{executables.WithArg("apply"), executables.WithFile("-"), executables.WithKubeconfig(kubeConfig)}
+	err = k.ApplyResourcesFromBytes(ctx, controllerYaml, params...)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func newDependencies(ctx context.Context) (*dependencies.Dependencies, error) {
+func newDependencies(ctx context.Context, kubeConfig string) (*dependencies.Dependencies, error) {
 	return dependencies.NewFactory().
-		WithExecutableImage().
+		WithExecutableImage(executables.DefaultEksaImage()).
+		WithExecutableMountDirs(path.Dir(kubeConfig)).
 		WithExecutableBuilder().
 		WithKubectl().
 		Build(ctx)
