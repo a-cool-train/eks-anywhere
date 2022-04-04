@@ -789,10 +789,6 @@ func WithFile(file string) KubectlOpt {
 	return appendOpt("-f", file)
 }
 
-func WithData(data []byte) KubectlOpt {
-	return appendOpt(string(data))
-}
-
 func appendOpt(new ...string) KubectlOpt {
 	return func(args *[]string) {
 		*args = append(*args, new...)
@@ -1465,18 +1461,16 @@ func (k *Kubectl) GetBmcsPowerState(ctx context.Context, bmcNames []string, kube
 	return strings.Fields(buffer.String()), nil
 }
 
+func (k *Kubectl) ApplyResourcesFromBytes(ctx context.Context, data []byte, opts ...KubectlOpt) error {
+	var params []string
+	applyOpts(&params, opts...)
+	_, err := k.ExecuteWithStdin(ctx, data, params...)
+	return fmt.Errorf("executing apply: %v", err)
+}
+
 func (k *Kubectl) ApplyResources(ctx context.Context, opts ...KubectlOpt) (bytes.Buffer, error) {
 	var params []string
 	applyOpts(&params, opts...)
 	stdOut, err := k.Execute(ctx, params...)
 	return stdOut, err
-}
-
-func (k *Kubectl) ApplyResourcesFromBytes(ctx context.Context, data []byte, kubeConfig string) error {
-	params := []string{"apply", "-f", "-", "--kubeconfig", kubeConfig}
-	_, err := k.ExecuteWithStdin(ctx, data, params...)
-	if err != nil {
-		return fmt.Errorf("executing apply: %v", err)
-	}
-	return nil
 }
