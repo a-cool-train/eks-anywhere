@@ -134,9 +134,10 @@ func ApplyResource(ctx context.Context, resource string, fileName string, kubeCo
 	params := []executables.KubectlOpt{executables.WithArg(resource), executables.WithKubeconfig(kubeConfig), executables.WithFile(fileName)}
 	stdOut, err := kubectl.ApplyResources(ctx, params...)
 	if err != nil {
+		fmt.Print(&stdOut)
 		return err
 	}
-	fmt.Println(&stdOut)
+	fmt.Print(&stdOut)
 	return nil
 }
 
@@ -149,9 +150,10 @@ func DeletePackages(ctx context.Context, args []string, kubeConfig string) error
 	params := []executables.KubectlOpt{executables.WithArg("delete"), executables.WithArg("packages"), executables.WithKubeconfig(kubeConfig), executables.WithArgs(args), executables.WithNamespace(constants.EksaPackagesName)}
 	stdOut, err := kubectl.ApplyResources(ctx, params...)
 	if err != nil {
+		fmt.Print(&stdOut)
 		return err
 	}
-	fmt.Println(&stdOut)
+	fmt.Print(&stdOut)
 	return nil
 }
 
@@ -170,7 +172,7 @@ func DescribePackages(ctx context.Context, args []string, kubeConfig string) err
 	if len(stdOut.Bytes()) == 0 {
 		return fmt.Errorf("no resources found in %s", constants.EksaPackagesName)
 	}
-	fmt.Println(&stdOut)
+	fmt.Print(&stdOut)
 	return nil
 }
 
