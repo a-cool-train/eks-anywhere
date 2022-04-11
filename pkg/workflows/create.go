@@ -3,6 +3,11 @@ package workflows
 import (
 	"context"
 	"fmt"
+	"github.com/aws/eks-anywhere/pkg/curatedpackages"
+	"github.com/aws/eks-anywhere/pkg/dependencies"
+	"github.com/aws/eks-anywhere/pkg/executables"
+	"github.com/aws/eks-anywhere/pkg/kubeconfig"
+	"path/filepath"
 
 	"github.com/aws/eks-anywhere/pkg/cluster"
 	"github.com/aws/eks-anywhere/pkg/clustermarshaller"
@@ -37,7 +42,7 @@ func NewCreate(bootstrapper interfaces.Bootstrapper, provider providers.Provider
 	}
 }
 
-func (c *Create) Run(ctx context.Context, clusterSpec *cluster.Spec, validator interfaces.Validator, forceCleanup bool) error {
+func (c *Create) Run(ctx context.Context, clusterSpec *cluster.Spec, validator interfaces.Validator, forceCleanup bool, packagesLocation string) error {
 	if forceCleanup {
 		if err := c.bootstrapper.DeleteBootstrapCluster(ctx, &types.Cluster{
 			Name: clusterSpec.Cluster.Name,
@@ -60,7 +65,9 @@ func (c *Create) Run(ctx context.Context, clusterSpec *cluster.Spec, validator i
 		commandContext.BootstrapCluster = clusterSpec.ManagementCluster
 	}
 
-	return task.NewTaskRunner(&SetAndValidateTask{}).RunTask(ctx, commandContext)
+	err := task.NewTaskRunner(&SetAndValidateTask{}).RunTask(ctx, commandContext)
+	InstallCuratedPackages(ctx, packagesLocation)
+	return err
 }
 
 // task related entities
@@ -82,6 +89,8 @@ type WriteClusterConfigTask struct{}
 type DeleteBootstrapClusterTask struct {
 	*CollectDiagnosticsTask
 }
+
+type InstallPackageControllerTask struct{}
 
 // CreateBootStrapClusterTask implementation
 
@@ -359,7 +368,7 @@ func (s *DeleteBootstrapClusterTask) Run(ctx context.Context, commandContext *ta
 	if commandContext.OriginalError == nil {
 		logger.MarkSuccess("Cluster created!")
 	}
-	return nil
+	return &InstallPackageControllerTask{}
 }
 
 func (s *DeleteBootstrapClusterTask) Name() string {
