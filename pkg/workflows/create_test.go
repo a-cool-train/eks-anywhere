@@ -209,7 +209,7 @@ func (c *createTestSetup) expectInstallMHC() {
 }
 
 func (c *createTestSetup) run() error {
-	return c.workflow.Run(c.ctx, c.clusterSpec, c.validator, c.forceCleanup)
+	return c.workflow.Run(c.ctx, c.clusterSpec, c.validator, c.forceCleanup, "")
 }
 
 func (c *createTestSetup) expectPreflightValidationsToPass() {

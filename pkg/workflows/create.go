@@ -3,6 +3,11 @@ package workflows
 import (
 	"context"
 	"fmt"
+	"github.com/aws/eks-anywhere/pkg/curatedpackages"
+	"github.com/aws/eks-anywhere/pkg/dependencies"
+	"github.com/aws/eks-anywhere/pkg/executables"
+	"github.com/aws/eks-anywhere/pkg/kubeconfig"
+	"path/filepath"
 
 	"github.com/aws/eks-anywhere/pkg/cluster"
 	"github.com/aws/eks-anywhere/pkg/clustermarshaller"
@@ -35,7 +40,7 @@ func NewCreate(bootstrapper interfaces.Bootstrapper, provider providers.Provider
 	}
 }
 
-func (c *Create) Run(ctx context.Context, clusterSpec *cluster.Spec, validator interfaces.Validator, forceCleanup bool) error {
+func (c *Create) Run(ctx context.Context, clusterSpec *cluster.Spec, validator interfaces.Validator, forceCleanup bool, packagesLocation string) error {
 	if forceCleanup {
 		if err := c.bootstrapper.DeleteBootstrapCluster(ctx, &types.Cluster{
 			Name: clusterSpec.Cluster.Name,
@@ -57,7 +62,9 @@ func (c *Create) Run(ctx context.Context, clusterSpec *cluster.Spec, validator i
 		commandContext.BootstrapCluster = clusterSpec.ManagementCluster
 	}
 
-	return task.NewTaskRunner(&SetAndValidateTask{}).RunTask(ctx, commandContext)
+	err := task.NewTaskRunner(&SetAndValidateTask{}).RunTask(ctx, commandContext)
+	InstallCuratedPackages(ctx, packagesLocation)
+	return err
 }
 
 // task related entities
@@ -79,6 +86,8 @@ type WriteClusterConfigTask struct{}
 type DeleteBootstrapClusterTask struct {
 	*CollectDiagnosticsTask
 }
+
+type InstallPackageControllerTask struct{}
 
 // CreateBootStrapClusterTask implementation
 
@@ -340,11 +349,40 @@ func (s *DeleteBootstrapClusterTask) Run(ctx context.Context, commandContext *ta
 	if commandContext.OriginalError == nil {
 		logger.MarkSuccess("Cluster created!")
 	}
-	return nil
+	return &InstallPackageControllerTask{}
 }
 
 func (s *DeleteBootstrapClusterTask) Name() string {
 	return "delete-kind-cluster"
+}
+
+func (s *InstallPackageControllerTask) Run(ctx context.Context, commandContext *task.CommandContext) task.Task {
+	logger.Info("Installing curated packages controller on workload  cluster")
+	kubeConfig := kubeconfig.FromEnvironment()
+	deps, err := newDependenciesWithHelm(ctx, filepath.Dir(kubeConfig))
+	if err != nil {
+		logger.MarkFail("Error when installing curated packages controller on workload cluster; please install through eksctl anywhere install command", "error", err)
+		return nil
+	}
+	helm := deps.Helm
+	err = helm.InstallChart(ctx, "oci://public.ecr.aws/j0a1m4z9/eks-anywhere-packages", kubeConfig, "0.1.4+ad689eb0f06c6ccfd6f9c3ad130445e2a0e25eb9", "eks-anywhere-packages")
+	if err != nil {
+		logger.MarkFail("Error when installing curated packages controller on workload cluster; please install through eksctl anywhere install command", "error", err)
+		return nil
+	}
+	return nil
+}
+
+func (s *InstallPackageControllerTask) Name() string {
+	return "install-package-controller"
+}
+
+func InstallCuratedPackages(ctx context.Context, packagesLocation string) {
+	kubeConfig := kubeconfig.FromEnvironment()
+	err := curatedpackages.ApplyResource(ctx, "create", packagesLocation, kubeConfig)
+	if err != nil {
+		logger.MarkFail("Error when installing curated packages on workload cluster; please install through eksctl anywhere install command", "error", err)
+	}
 }
 
 func getManagementCluster(commandContext *task.CommandContext) *types.Cluster {
@@ -353,4 +391,13 @@ func getManagementCluster(commandContext *task.CommandContext) *types.Cluster {
 		target = commandContext.BootstrapCluster
 	}
 	return target
+}
+
+func newDependenciesWithHelm(ctx context.Context, paths ...string) (*dependencies.Dependencies, error) {
+	return dependencies.NewFactory().
+		WithExecutableImage(executables.DefaultEksaImage()).
+		WithExecutableMountDirs(paths...).
+		WithExecutableBuilder().
+		WithHelm().
+		Build(ctx)
 }

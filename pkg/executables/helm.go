@@ -66,6 +66,12 @@ func (h *Helm) PullChart(ctx context.Context, ociURI, version string) error {
 	return err
 }
 
+func (h *Helm) InstallChart(ctx context.Context, ociURI, kubeConfig string, version string, name string) error {
+	_, err := h.Command(ctx, "install", name, ociURI, "--version", version, insecureSkipVerifyFlag, "--kubeconfig", kubeConfig).
+		WithEnvVars(helmTemplateEnvVars).Run()
+	return err
+}
+
 func (h *Helm) PushChart(ctx context.Context, chart, registry string) error {
 	logger.Info("Pushing", "chart", chart)
 	_, err := h.executable.Command(ctx, "push", chart, registry, insecureSkipVerifyFlag).WithEnvVars(helmTemplateEnvVars).Run()
