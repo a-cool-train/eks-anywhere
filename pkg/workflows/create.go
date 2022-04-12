@@ -66,8 +66,10 @@ func (c *Create) Run(ctx context.Context, clusterSpec *cluster.Spec, validator i
 		return err
 	}
 
-	installCuratedPackages(ctx, clusterSpec.Cluster.Name, packagesLocation)
-	return err
+	if packagesLocation != "" {
+		installCuratedPackages(ctx, clusterSpec.Cluster.Name, packagesLocation)
+	}
+	return nil
 }
 
 // task related entities
