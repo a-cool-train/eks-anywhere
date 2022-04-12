@@ -2,6 +2,7 @@ package resource_test
 
 import (
 	"context"
+	"github.com/go-logr/logr"
 	"reflect"
 	"testing"
 
