@@ -1454,7 +1454,7 @@ func (k *Kubectl) GetBmcsPowerState(ctx context.Context, bmcNames []string, kube
 	return strings.Fields(buffer.String()), nil
 }
 
-func (k *Kubectl) ApplyResourcesFromBytes(ctx context.Context, data []byte, opts ...KubectlOpt) error {
+func (k *Kubectl) ApplyResourcesFromBytes(ctx context.Context, data []byte, opts ...KubectlOpt) (bytes.Buffer, error) {
 	var params []string
 	applyOpts(&params, opts...)
 	stdOut, err := k.ExecuteWithStdin(ctx, data, params...)
