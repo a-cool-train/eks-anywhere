@@ -785,6 +785,10 @@ func WithArg(arg string) KubectlOpt {
 	return appendOpt(arg)
 }
 
+func WithFile(file string) KubectlOpt {
+	return appendOpt("-f", file)
+}
+
 func appendOpt(new ...string) KubectlOpt {
 	return func(args *[]string) {
 		*args = append(*args, new...)
