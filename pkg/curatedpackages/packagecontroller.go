@@ -2,7 +2,6 @@ package curatedpackages
 
 import (
 	"context"
-	"fmt"
 	"github.com/aws/eks-anywhere/pkg/dependencies"
 	"github.com/aws/eks-anywhere/pkg/kubeconfig"
 	"path/filepath"
@@ -10,7 +9,6 @@ import (
 
 func InstallController(ctx context.Context, clusterName string) error {
 	kubeConfig := kubeconfig.FromClusterName(clusterName)
-	fmt.Println("Kubeconfig location: " + kubeConfig)
 	deps, err := newDependenciesWithHelm(ctx, filepath.Dir(kubeConfig))
 	if err != nil {
 		return err
