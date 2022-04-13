@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/aws/eks-anywhere/pkg/dependencies"
-	"github.com/aws/eks-anywhere/pkg/executables"
 	"github.com/aws/eks-anywhere/pkg/kubeconfig"
 	"path/filepath"
 )
@@ -22,7 +21,7 @@ func InstallController(ctx context.Context, clusterName string) error {
 
 func newDependenciesWithHelm(ctx context.Context, paths ...string) (*dependencies.Dependencies, error) {
 	return dependencies.NewFactory().
-		WithExecutableImage(executables.DefaultEksaImage()).
+		WithExecutableImage().
 		WithExecutableMountDirs(paths...).
 		WithExecutableBuilder().
 		WithHelm().

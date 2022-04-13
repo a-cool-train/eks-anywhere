@@ -112,7 +112,8 @@ func InstallPackage(ctx context.Context, bp *api.BundlePackage, b *api.PackageBu
 		return fmt.Errorf("unable to initialize executables: %v", err)
 	}
 	kubectl := deps.Kubectl
-	packageYaml, err := yaml.Marshal(p)
+	displayPackage := NewDisplayPackage(p)
+	packageYaml, err := yaml.Marshal(displayPackage)
 	if err != nil {
 		return err
 	}
