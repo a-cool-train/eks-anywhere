@@ -66,7 +66,7 @@ func getResources(ctx context.Context, resourceType string, output string, args 
 
 func newDependencies(ctx context.Context, kubeConfig string) (*dependencies.Dependencies, error) {
 	return dependencies.NewFactory().
-		WithExecutableImage(executables.DefaultEksaImage()).
+		WithExecutableImage().
 		WithExecutableMountDirs(path.Dir(kubeConfig)).
 		WithExecutableBuilder().
 		WithKubectl().

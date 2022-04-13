@@ -1423,7 +1423,7 @@ func (k *Kubectl) GetDaemonSet(ctx context.Context, name, namespace, kubeconfig 
 func (k *Kubectl) ApplyResourcesFromBytes(ctx context.Context, data []byte, opts ...KubectlOpt) (bytes.Buffer, error) {
 	var params []string
 	applyOpts(&params, opts...)
-	stdOut, err := k.Execute(ctx, params...)
+	stdOut, err := k.ExecuteWithStdin(ctx, data, params...)
 	return stdOut, err
 }
 
@@ -1459,12 +1459,6 @@ func (k *Kubectl) GetBmcsPowerState(ctx context.Context, bmcNames []string, kube
 	}
 
 	return strings.Fields(buffer.String()), nil
-}
-
-func (k *Kubectl) ApplyResourcesFromBytes(ctx context.Context, data []byte) error {
-	params := []string{"apply", "-f", "-"}
-	_, err := k.ExecuteWithStdin(ctx, data, params...)
-	return fmt.Errorf("executing apply: %v", err)
 }
 
 func (k *Kubectl) ApplyResources(ctx context.Context, opts ...KubectlOpt) (bytes.Buffer, error) {

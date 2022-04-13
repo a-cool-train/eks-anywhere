@@ -109,7 +109,7 @@ func UpgradeBundle(ctx context.Context, controller *api.PackageBundleController,
 
 func newDependencies(ctx context.Context, paths ...string) (*dependencies.Dependencies, error) {
 	return dependencies.NewFactory().
-		WithExecutableImage(executables.DefaultEksaImage()).
+		WithExecutableImage().
 		WithExecutableMountDirs(paths...).
 		WithExecutableBuilder().
 		WithKubectl().
