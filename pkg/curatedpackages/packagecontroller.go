@@ -2,19 +2,23 @@ package curatedpackages
 
 import (
 	"context"
+	"fmt"
+	"github.com/aws/eks-anywhere/pkg/cluster"
 	"github.com/aws/eks-anywhere/pkg/dependencies"
 	"github.com/aws/eks-anywhere/pkg/kubeconfig"
 	"path/filepath"
 )
 
-func InstallController(ctx context.Context, clusterName string) error {
-	kubeConfig := kubeconfig.FromClusterName(clusterName)
+func InstallController(ctx context.Context, cs *cluster.Spec) error {
+	kubeConfig := kubeconfig.FromClusterName(cs.Cluster.Name)
 	deps, err := newDependenciesWithHelm(ctx, filepath.Dir(kubeConfig))
 	if err != nil {
 		return err
 	}
 	helm := deps.Helm
-	return helm.InstallChart(ctx, "oci://public.ecr.aws/j0a1m4z9/eks-anywhere-packages", kubeConfig, "0.1.4+ad689eb0f06c6ccfd6f9c3ad130445e2a0e25eb9", "eks-anywhere-packages")
+	helmChart := cs.VersionsBundle.VersionsBundle.PackageController.HelmChart
+	uri := fmt.Sprintf("%s%s", "oci://", helmChart.Image())
+	return helm.InstallChart(ctx, uri, kubeConfig, helmChart.Tag(), helmChart.Name)
 }
 
 func newDependenciesWithHelm(ctx context.Context, paths ...string) (*dependencies.Dependencies, error) {
