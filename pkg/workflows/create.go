@@ -360,7 +360,7 @@ func (s *DeleteBootstrapClusterTask) Name() string {
 
 func (s *InstallPackageControllerTask) Run(ctx context.Context, commandContext *task.CommandContext) task.Task {
 	logger.Info("Installing curated packages controller on workload  cluster")
-	err := curatedpackages.InstallController(ctx, commandContext.ClusterSpec.Cluster.Name)
+	err := curatedpackages.InstallController(ctx, commandContext.ClusterSpec)
 	if err != nil {
 		logger.MarkFail("Error when installing curated packages controller on workload cluster; please install through eksctl anywhere install command", "error", err)
 	}
