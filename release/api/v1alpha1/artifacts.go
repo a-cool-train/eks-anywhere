@@ -1,5 +1,14 @@
 package v1alpha1
 
+import (
+	"fmt"
+	"strings"
+)
+
+type Reader interface {
+	ReadBundlesForVersion(eksaVersion string) (Bundles, error)
+}
+
 func (vb *VersionsBundle) Manifests() map[string][]*string {
 	return map[string][]*string{
 		"cluster-api-provider-aws": {
@@ -80,6 +89,12 @@ func (vb *VersionsBundle) CloudStackImages() []Image {
 	return []Image{
 		vb.CloudStack.ClusterAPIController,
 		vb.CloudStack.KubeVip,
+	}
+}
+
+func (vb *VersionsBundle) PackageControllerImages() []Image {
+	return []Image{
+		vb.PackageController.Controller,
 	}
 }
 
@@ -168,4 +183,23 @@ func (vb *VersionsBundle) Charts() map[string]*Image {
 		// when pushing it to harbor
 		//"eks-anywhere-packages": &vb.PackageController.HelmChart,
 	}
+}
+
+func (vb *VersionsBundle) CuratedPackagesImages(packageController Image) []Image {
+	bundle := Image{
+		Name:        "packages-bundle-image",
+		Description: "curated packages bundle image",
+		OS:          packageController.OS,
+		OSName:      packageController.OSName,
+		URI:         getPackageBundleUri(packageController, vb.KubeVersion),
+	}
+}
+
+func getPackageBundleUri(pc Image, kubeVersion string) string {
+	// Use package controller registry to fetch packageBundles.
+	// Format of controller image is: <uri>/<env_type>/<repository_name>
+	controllerImage := strings.Split(pc.Image(), "/")
+	repositoryName := "eksa-package-bundles"
+	registryBaseRef := fmt.Sprintf("%s/%s/%s", controllerImage[0], controllerImage[1], repositoryName)
+
 }
