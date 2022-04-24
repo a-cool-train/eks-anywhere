@@ -1,6 +1,7 @@
 package curatedpackages
 
 import (
+	"fmt"
 	"github.com/aws/eks-anywhere/pkg/manifests"
 	releasev1 "github.com/aws/eks-anywhere/release/api/v1alpha1"
 	eksdv1 "github.com/aws/eks-distro-build-tooling/release/api/v1alpha1"
@@ -31,6 +32,10 @@ func (r *PackagesReader) ReadImages(eksaVersion string) ([]releasev1.Image, erro
 
 func (r *PackagesReader) ReadImagesFromBundles(b *releasev1.Bundles) ([]releasev1.Image, error) {
 	images, err := r.ManifestReader.ReadImagesFromBundles(b)
+	fmt.Println("Reading Curatedpackages Images")
+	for _, v := range b.Spec.VersionsBundles {
+		images = append(images, v.CuratedPackagesImages()...)
+	}
 	return images, err
 }
 

@@ -44,7 +44,7 @@ func init() {
 	if err := downloadImagesCmd.MarkFlagRequired("output"); err != nil {
 		log.Fatalf("Cannot mark 'output' flag as required: %s", err)
 	}
-	downloadImagesCmd.Flags().BoolVar(&downloadImagesRunner.installPackages, "output", false, "Flag to indicate inclusion of curated packages in downloaded images")
+	downloadImagesCmd.Flags().BoolVar(&downloadImagesRunner.installPackages, "installpackages", false, "Flag to indicate inclusion of curated packages in downloaded images")
 
 }
 

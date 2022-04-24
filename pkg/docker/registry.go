@@ -65,6 +65,7 @@ func (s *ImageOriginalRegistrySource) Load(ctx context.Context, images ...string
 	logger.V(3).Info("Starting pull", "numberOfImages", len(images))
 
 	err := s.processor.Process(ctx, images, func(ctx context.Context, image string) error {
+		logger.Info("Image: " + image)
 		if err := s.client.PullImage(ctx, image); err != nil {
 			return err
 		}

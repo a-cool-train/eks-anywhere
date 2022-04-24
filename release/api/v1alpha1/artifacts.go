@@ -2,12 +2,8 @@ package v1alpha1
 
 import (
 	"fmt"
-	"strings"
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
-
-type Reader interface {
-	ReadBundlesForVersion(eksaVersion string) (Bundles, error)
-}
 
 func (vb *VersionsBundle) Manifests() map[string][]*string {
 	return map[string][]*string{
@@ -89,12 +85,6 @@ func (vb *VersionsBundle) CloudStackImages() []Image {
 	return []Image{
 		vb.CloudStack.ClusterAPIController,
 		vb.CloudStack.KubeVip,
-	}
-}
-
-func (vb *VersionsBundle) PackageControllerImages() []Image {
-	return []Image{
-		vb.PackageController.Controller,
 	}
 }
 
@@ -185,7 +175,8 @@ func (vb *VersionsBundle) Charts() map[string]*Image {
 	}
 }
 
-func (vb *VersionsBundle) CuratedPackagesImages(packageController Image) []Image {
+func (vb *VersionsBundle) CuratedPackagesImages() []Image {
+	packageController := vb.PackageController.Controller
 	bundle := Image{
 		Name:        "packages-bundle-image",
 		Description: "curated packages bundle image",
@@ -193,13 +184,48 @@ func (vb *VersionsBundle) CuratedPackagesImages(packageController Image) []Image
 		OSName:      packageController.OSName,
 		URI:         getPackageBundleUri(packageController, vb.KubeVersion),
 	}
+
+	packageBundle := getPackageBundle()
+	images := []Image{
+		bundle,
+	}
+
+	for _, p := range packageBundle.Spec.Packages {
+		pI := Image{
+			Name:        p.Name,
+			Description: p.Name,
+			OS:          packageController.OS,
+			OSName:      packageController.OSName,
+			URI:         p.Source.Registry + "/" + p.Source.Repository + ":" + p.Source.Versions[0].Name,
+		}
+		fmt.Println("URI: " + pI.URI)
+		images = append(images, pI)
+	}
+	return images
 }
 
 func getPackageBundleUri(pc Image, kubeVersion string) string {
-	// Use package controller registry to fetch packageBundles.
-	// Format of controller image is: <uri>/<env_type>/<repository_name>
-	controllerImage := strings.Split(pc.Image(), "/")
-	repositoryName := "eksa-package-bundles"
-	registryBaseRef := fmt.Sprintf("%s/%s/%s", controllerImage[0], controllerImage[1], repositoryName)
+	return "https://gallery.ecr.aws/l0g8r8j6/eks-anywhere-packages-bundles:v1"
+}
 
+func getPackageBundle() api.PackageBundle {
+	return api.PackageBundle{
+		Spec: api.PackageBundleSpec{
+			Packages: []api.BundlePackage{
+				{
+					Name: "harbor",
+					Source: api.BundlePackageSource{
+						Registry:   "public.ecr.aws/y8n6a2y0",
+						Repository: "harbor/harbor-helm",
+						Versions: []api.SourceVersion{
+							{
+								Digest: "sha256:423eb28b0586376f4d1d30b492370a4e215f2b0210a587fff6f358efc41dda4c",
+								Name:   "v2.4.1-f47374093e8a9c48aca8c7a7f06ae185eb7506f3-helm",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
 }

@@ -59,6 +59,9 @@ func NewImageMover(source ImageSource, destination ImageDestination) *ImageMover
 // Move loads images from source and writes them to the destination
 func (m *ImageMover) Move(ctx context.Context, images ...string) error {
 	uniqueImages := removesDuplicates(images)
+	for _, i := range uniqueImages {
+		fmt.Println("UniqueImage: " + i)
+	}
 
 	if err := m.source.Load(ctx, uniqueImages...); err != nil {
 		return fmt.Errorf("loading docker image mover source: %v", err)
