@@ -1,7 +1,6 @@
 package v1alpha1
 
 import (
-	"fmt"
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
@@ -167,29 +166,40 @@ func (vb *VersionsBundle) Images() []Image {
 }
 
 func (vb *VersionsBundle) Charts() map[string]*Image {
-	return map[string]*Image{
-		"cilium": &vb.Cilium.HelmChart,
-		// Temporarily disabling this chart until we fix the error
-		// when pushing it to harbor
-		//"eks-anywhere-packages": &vb.PackageController.HelmChart,
+	imagesMap := make(map[string]*Image)
+	imagesMap["cilium"] = &vb.Cilium.HelmChart
+
+	//packageController := vb.PackageController.Controller
+	//bundle := Image{
+	//	Name:        "packages-bundle-image",
+	//	Description: "curated packages bundle image",
+	//	OS:          packageController.OS,
+	//	OSName:      packageController.OSName,
+	//	URI:         getPackageBundleUri(packageController, vb.KubeVersion),
+	//}
+	//imagesMap[bundle.Name] = &bundle
+
+	images := vb.CuratedPackagesImages()
+	for _, image := range images {
+		imagesMap[image.Name] = &image
 	}
+	return imagesMap
+}
+
+func (vb *VersionsBundle) CuratedPackagesCharts() map[string]*Image {
+	imagesMap := make(map[string]*Image)
+	images := vb.CuratedPackagesImages()
+	for _, image := range images {
+		imagesMap[image.Name] = &image
+	}
+	return imagesMap
 }
 
 func (vb *VersionsBundle) CuratedPackagesImages() []Image {
 	packageController := vb.PackageController.Controller
-	bundle := Image{
-		Name:        "packages-bundle-image",
-		Description: "curated packages bundle image",
-		OS:          packageController.OS,
-		OSName:      packageController.OSName,
-		URI:         getPackageBundleUri(packageController, vb.KubeVersion),
-	}
 
 	packageBundle := getPackageBundle()
-	images := []Image{
-		bundle,
-	}
-
+	var images []Image
 	for _, p := range packageBundle.Spec.Packages {
 		pI := Image{
 			Name:        p.Name,
@@ -198,14 +208,19 @@ func (vb *VersionsBundle) CuratedPackagesImages() []Image {
 			OSName:      packageController.OSName,
 			URI:         p.Source.Registry + "/" + p.Source.Repository + ":" + p.Source.Versions[0].Name,
 		}
-		fmt.Println("URI: " + pI.URI)
 		images = append(images, pI)
 	}
 	return images
 }
 
+func (vb *VersionsBundle) PackagesControllerImage() []Image {
+	return []Image{
+		vb.PackageController.Controller,
+	}
+}
+
 func getPackageBundleUri(pc Image, kubeVersion string) string {
-	return "https://gallery.ecr.aws/l0g8r8j6/eks-anywhere-packages-bundles:v1"
+	return "https://public.ecr.aws/l0g8r8j6/eks-anywhere-packages-bundles:v1"
 }
 
 func getPackageBundle() api.PackageBundle {
