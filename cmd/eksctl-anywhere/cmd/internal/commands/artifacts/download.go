@@ -28,6 +28,11 @@ type Packager interface {
 	Package(folder string, dstFile string) error
 }
 
+type BundleDownloader interface {
+	Pull(ctx context.Context, artifacts ...string) error
+	ReadFilesFromBundles(bundles *releasev1.Bundles) []string
+}
+
 type Download struct {
 	Reader                   Reader
 	Version                  version.Info
@@ -37,6 +42,7 @@ type Download struct {
 	Packager                 Packager
 	TmpDowloadFolder         string
 	DstFile                  string
+	BundlePuller             BundleDownloader
 }
 
 func (d Download) Run(ctx context.Context) error {
@@ -68,6 +74,10 @@ func (d Download) Run(ctx context.Context) error {
 		return err
 	}
 
+	files := d.BundlePuller.ReadFilesFromBundles(b)
+	if err := d.BundlePuller.Pull(ctx, files...); err != nil {
+		return err
+	}
 	logger.Info("Packaging artifacts", "dst", d.DstFile)
 	if err := d.Packager.Package(d.TmpDowloadFolder, d.DstFile); err != nil {
 		return err

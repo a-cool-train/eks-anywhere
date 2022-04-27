@@ -8,6 +8,7 @@ import (
 	"context"
 	"github.com/aws/eks-anywhere/pkg/curatedpackages"
 	"github.com/aws/eks-anywhere/pkg/manifests"
+	"github.com/aws/eks-anywhere/pkg/oras"
 	"log"
 	"path/filepath"
 
@@ -86,6 +87,7 @@ func (c downloadImagesCommand) Run(ctx context.Context) error {
 		TmpDowloadFolder: downloadFolder,
 		DstFile:          c.outputFile,
 		Packager:         tar.NewPackager(),
+		BundlePuller:     oras.NewBundleDownloader(downloadFolder),
 	}
 
 	return downloadArtifacts.Run(ctx)

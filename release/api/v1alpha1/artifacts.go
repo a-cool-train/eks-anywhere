@@ -1,7 +1,14 @@
 package v1alpha1
 
 import (
+	"context"
+	"fmt"
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/pkg/artifacts"
+	"github.com/aws/eks-anywhere-packages/pkg/bundle"
+	"github.com/aws/eks-anywhere-packages/pkg/testutil"
+	"github.com/go-logr/logr"
+	"strings"
 )
 
 func (vb *VersionsBundle) Manifests() map[string][]*string {
@@ -179,26 +186,24 @@ func (vb *VersionsBundle) Charts() map[string]*Image {
 	//}
 	//imagesMap[bundle.Name] = &bundle
 
-	images := vb.CuratedPackagesImages()
+	images, err := vb.CuratedPackagesImages()
+	if err != nil {
+		fmt.Println(err)
+	}
 	for _, image := range images {
-		imagesMap[image.Name] = &image
+		icopy := image
+		imagesMap[image.Name] = &icopy
 	}
 	return imagesMap
 }
 
-func (vb *VersionsBundle) CuratedPackagesCharts() map[string]*Image {
-	imagesMap := make(map[string]*Image)
-	images := vb.CuratedPackagesImages()
-	for _, image := range images {
-		imagesMap[image.Name] = &image
-	}
-	return imagesMap
-}
-
-func (vb *VersionsBundle) CuratedPackagesImages() []Image {
+func (vb *VersionsBundle) CuratedPackagesImages() ([]Image, error) {
 	packageController := vb.PackageController.Controller
 
-	packageBundle := getPackageBundle()
+	packageBundle, err := vb.getPackageBundle()
+	if err != nil {
+		return []Image{}, fmt.Errorf("unable to parse: %v", err)
+	}
 	var images []Image
 	for _, p := range packageBundle.Spec.Packages {
 		pI := Image{
@@ -210,7 +215,7 @@ func (vb *VersionsBundle) CuratedPackagesImages() []Image {
 		}
 		images = append(images, pI)
 	}
-	return images
+	return images, nil
 }
 
 func (vb *VersionsBundle) PackagesControllerImage() []Image {
@@ -219,28 +224,21 @@ func (vb *VersionsBundle) PackagesControllerImage() []Image {
 	}
 }
 
-func getPackageBundleUri(pc Image, kubeVersion string) string {
-	return "https://public.ecr.aws/l0g8r8j6/eks-anywhere-packages-bundles:v1"
+func (vb *VersionsBundle) getPackageBundle() (*api.PackageBundle, error) {
+	bm := createBundleManager(vb.KubeVersion)
+	packageController := vb.PackageController
+	// Use package controller registry to fetch packageBundles.
+	// Format of controller image is: <uri>/<env_type>/<repository_name>
+	controllerImage := strings.Split(packageController.Controller.Image(), "/")
+	registryBaseRef := fmt.Sprintf("%s/%s/%s", controllerImage[0], controllerImage[1], "eks-anywhere-packages-bundles")
+	return bm.LatestBundle(context.Background(), registryBaseRef)
 }
 
-func getPackageBundle() api.PackageBundle {
-	return api.PackageBundle{
-		Spec: api.PackageBundleSpec{
-			Packages: []api.BundlePackage{
-				{
-					Name: "harbor",
-					Source: api.BundlePackageSource{
-						Registry:   "public.ecr.aws/y8n6a2y0",
-						Repository: "harbor/harbor-helm",
-						Versions: []api.SourceVersion{
-							{
-								Digest: "sha256:423eb28b0586376f4d1d30b492370a4e215f2b0210a587fff6f358efc41dda4c",
-								Name:   "v2.4.1-f47374093e8a9c48aca8c7a7f06ae185eb7506f3-helm",
-							},
-						},
-					},
-				},
-			},
-		},
-	}
+func createBundleManager(kubeVersion string) bundle.Manager {
+	versionSplit := strings.Split(kubeVersion, ".")
+	major, minor := versionSplit[0], versionSplit[1]
+	log := logr.Discard()
+	discovery := testutil.NewFakeDiscovery(major, minor)
+	puller := artifacts.NewRegistryPuller()
+	return bundle.NewBundleManager(log, discovery, puller)
 }
