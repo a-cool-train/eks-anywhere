@@ -34,7 +34,7 @@ func NewRegistry(deps *dependencies.Dependencies, registryName, kubeVersion, use
 }
 
 func CreateBundleManager(kubeVersion string) bundle.Manager {
-	major, minor, err := parseKubeVersion(kubeVersion)
+	major, minor, err := ParseKubeVersion(kubeVersion)
 	if err != nil {
 		return nil
 	}
@@ -57,7 +57,7 @@ func GetVersionBundle(reader Reader, eksaVersion, kubeVersion string) (*releasev
 	return versionsBundle, nil
 }
 
-func parseKubeVersion(kubeVersion string) (string, string, error) {
+func ParseKubeVersion(kubeVersion string) (string, string, error) {
 	versionSplit := strings.Split(kubeVersion, ".")
 	if len(versionSplit) != 2 {
 		return "", "", fmt.Errorf("invalid kubeversion")

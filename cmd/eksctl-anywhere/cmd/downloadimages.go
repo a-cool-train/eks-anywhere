@@ -6,6 +6,9 @@ package cmd
 
 import (
 	"context"
+	"github.com/aws/eks-anywhere/pkg/curatedpackages"
+	"github.com/aws/eks-anywhere/pkg/manifests"
+	"github.com/aws/eks-anywhere/pkg/oras"
 	"log"
 	"path/filepath"
 	"strings"
@@ -43,12 +46,14 @@ func init() {
 	if err := downloadImagesCmd.MarkFlagRequired("output"); err != nil {
 		log.Fatalf("Cannot mark 'output' flag as required: %s", err)
 	}
+	downloadImagesCmd.Flags().BoolVar(&downloadImagesRunner.includePackages, "include-packages", false, "Flag to indicate inclusion of curated packages in downloaded images")
 }
 
 var downloadImagesRunner = downloadImagesCommand{}
 
 type downloadImagesCommand struct {
-	outputFile string
+	outputFile      string
+	includePackages bool
 }
 
 func (c downloadImagesCommand) Run(ctx context.Context) error {
@@ -68,7 +73,7 @@ func (c downloadImagesCommand) Run(ctx context.Context) error {
 	eksaToolsImageFile := filepath.Join(downloadFolder, eksaToolsImageTarFile)
 
 	downloadArtifacts := artifacts.Download{
-		Reader: deps.ManifestReader,
+		Reader: fetchReader(deps.ManifestReader),
 		BundlesImagesDownloader: docker.NewImageMover(
 			docker.NewOriginalRegistrySource(dockerClient),
 			docker.NewDiskDestination(dockerClient, imagesFile),
@@ -82,6 +87,7 @@ func (c downloadImagesCommand) Run(ctx context.Context) error {
 		TmpDowloadFolder: downloadFolder,
 		DstFile:          c.outputFile,
 		Packager:         packagerForFile(c.outputFile),
+		BundlePuller:     oras.NewBundleDownloader(downloadFolder),
 	}
 
 	return downloadArtifacts.Run(ctx)
@@ -98,4 +104,11 @@ func packagerForFile(file string) packager {
 	} else {
 		return tar.NewPackager()
 	}
+}
+
+func fetchReader(reader *manifests.Reader) artifacts.Reader {
+	if downloadImagesRunner.includePackages {
+		return curatedpackages.NewPackageReader(reader)
+	}
+	return reader
 }

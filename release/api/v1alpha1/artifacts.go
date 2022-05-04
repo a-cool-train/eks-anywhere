@@ -169,3 +169,9 @@ func (vb *VersionsBundle) Charts() map[string]*Image {
 		//"eks-anywhere-packages": &vb.PackageController.HelmChart,
 	}
 }
+
+func (vb *VersionsBundle) PackagesControllerImage() []Image {
+	return []Image{
+		vb.PackageController.Controller,
+	}
+}
