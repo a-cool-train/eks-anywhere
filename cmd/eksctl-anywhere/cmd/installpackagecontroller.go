@@ -41,10 +41,10 @@ func runInstallPackageController(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return installPackageController(cmd.Context(), args)
+	return installPackageController(cmd.Context())
 }
 
-func installPackageController(ctx context.Context, args []string) error {
+func installPackageController(ctx context.Context) error {
 	kubeConfig := kubeconfig.FromEnvironment()
 
 	deps, err := newDependenciesForPackages(ctx, kubeConfig)

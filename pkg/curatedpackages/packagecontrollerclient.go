@@ -33,7 +33,7 @@ func NewPackageControllerClient(chartInstaller ChartInstaller, kubectl KubectlRu
 
 func (pc *PackageControllerClient) InstallController(ctx context.Context) error {
 	uri := fmt.Sprintf("%s%s", "oci://", pc.ociUri)
-	return pc.chartInstaller.InstallChartFromName(ctx, uri, pc.kubeConfig, pc.chartVersion, pc.chartName)
+	return pc.chartInstaller.InstallChartFromName(ctx, uri, pc.kubeConfig, pc.chartName, pc.chartVersion)
 }
 
 func (pc *PackageControllerClient) ControllerExists(ctx context.Context) bool {
