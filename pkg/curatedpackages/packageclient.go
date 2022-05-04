@@ -172,21 +172,36 @@ func (pc *PackageClient) DescribePackages(ctx context.Context, packages []string
 
 func (pc *PackageClient) ApplyPackages(ctx context.Context, fileName string, kubeConfig string) error {
 	params := []string{"apply", "-f", fileName, "--kubeconfig", kubeConfig}
-	_, err := pc.kubectl.ExecuteCommand(ctx, params...)
-	return err
+	stdOut, err := pc.kubectl.ExecuteCommand(ctx, params...)
+	if err != nil {
+		fmt.Print(&stdOut)
+		return err
+	}
+	fmt.Print(&stdOut)
+	return nil
 }
 
 func (pc *PackageClient) CreatePackages(ctx context.Context, fileName string, kubeConfig string) error {
 	params := []string{"create", "-f", fileName, "--kubeconfig", kubeConfig}
-	_, err := pc.kubectl.ExecuteCommand(ctx, params...)
-	return err
+	stdOut, err := pc.kubectl.ExecuteCommand(ctx, params...)
+	if err != nil {
+		fmt.Print(&stdOut)
+		return err
+	}
+	fmt.Print(&stdOut)
+	return nil
 }
 
 func (pc *PackageClient) DeletePackages(ctx context.Context, args []string, kubeConfig string) error {
 	params := []string{"delete", "packages", "--kubeconfig", kubeConfig, "--namespace", constants.EksaPackagesName}
 	params = append(params, args...)
-	_, err := pc.kubectl.ExecuteCommand(ctx, params...)
-	return err
+	stdOut, err := pc.kubectl.ExecuteCommand(ctx, params...)
+	if err != nil {
+		fmt.Print(&stdOut)
+		return err
+	}
+	fmt.Print(&stdOut)
+	return nil
 }
 
 func (pc *PackageClient) DescribePackages(ctx context.Context, args []string, kubeConfig string) error {
