@@ -66,7 +66,7 @@ func installPackageController(ctx context.Context) error {
 		helmChart.Tag(),
 	)
 
-	if ctrlClient.ControllerExists(ctx) {
+	if err = ctrlClient.GetActiveController(ctx); err == nil {
 		return errors.New("curated Packages Controller Exists in the current Cluster")
 	}
 
