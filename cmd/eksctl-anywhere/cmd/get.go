@@ -56,7 +56,8 @@ func getResources(ctx context.Context, resourceType string, output string, args 
 		return fmt.Errorf("kubectl execution failure: \n%v", err)
 	}
 	if len(stdOut.Bytes()) == 0 {
-		return fmt.Errorf("No resources found in %v namespace\n", constants.EksaPackagesName)
+		fmt.Printf("No resources found in %v namespace", constants.EksaPackagesName)
+		return nil
 	}
 	fmt.Println(&stdOut)
 	return nil
