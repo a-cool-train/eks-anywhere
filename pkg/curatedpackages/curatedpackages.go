@@ -3,6 +3,8 @@ package curatedpackages
 import (
 	"context"
 	"fmt"
+	"github.com/aws/eks-anywhere/pkg/manifests/bundles"
+	releasev1 "github.com/aws/eks-anywhere/release/api/v1alpha1"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -41,6 +43,18 @@ func CreateBundleManager(kubeVersion string) bundle.Manager {
 	discovery := NewDiscovery(k)
 	puller := artifacts.NewRegistryPuller()
 	return bundle.NewBundleManager(log, discovery, puller)
+}
+
+func GetVersionBundle(reader Reader, eksaVersion, kubeVersion string) (*releasev1.VersionsBundle, error) {
+	b, err := reader.ReadBundlesForVersion(eksaVersion)
+	if err != nil {
+		return nil, err
+	}
+	versionsBundle := bundles.VersionsBundleForKubernetesVersion(b, kubeVersion)
+	if versionsBundle == nil {
+		return nil, fmt.Errorf("kubernetes version %s is not supported by bundles manifest %d", kubeVersion, b.Spec.Number)
+	}
+	return versionsBundle, nil
 }
 
 func parseKubeVersion(kubeVersion string) (string, string, error) {

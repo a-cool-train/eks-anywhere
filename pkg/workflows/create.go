@@ -387,7 +387,7 @@ func (s *InstallPackageControllerTask) Run(ctx context.Context, commandContext *
 		return nil
 	}
 	chart := commandContext.ClusterSpec.VersionsBundle.VersionsBundle.PackageController.HelmChart
-	pc := curatedpackages.NewPackageControllerClient(deps.Helm, kubeConfig, chart.Image(), chart.Name, chart.Tag())
+	pc := curatedpackages.NewPackageControllerClient(deps.Helm, deps.Kubectl, kubeConfig, chart.Image(), chart.Name, chart.Tag())
 	err = pc.InstallController(ctx)
 	if err != nil {
 		logger.MarkFail("Error when installing curated packages controller on workload cluster; please install through eksctl anywhere install command", "error", err)
