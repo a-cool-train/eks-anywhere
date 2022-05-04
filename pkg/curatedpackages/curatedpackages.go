@@ -1,6 +1,7 @@
 package curatedpackages
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -49,4 +50,14 @@ func parseKubeVersion(kubeVersion string) (string, string, error) {
 	}
 	major, minor := versionSplit[0], versionSplit[1]
 	return major, minor, nil
+}
+
+func NewDependenciesForPackages(ctx context.Context, paths ...string) (*dependencies.Dependencies, error) {
+	return dependencies.NewFactory().
+		WithExecutableMountDirs(paths...).
+		WithExecutableBuilder().
+		WithManifestReader().
+		WithKubectl().
+		WithHelm().
+		Build(ctx)
 }

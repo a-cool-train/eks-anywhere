@@ -376,3 +376,39 @@ func (s *DeleteBootstrapClusterTask) Run(ctx context.Context, commandContext *ta
 func (s *DeleteBootstrapClusterTask) Name() string {
 	return "delete-kind-cluster"
 }
+
+func (s *InstallPackageControllerTask) Run(ctx context.Context, commandContext *task.CommandContext) task.Task {
+	logger.Info("Installing curated packages controller on workload  cluster")
+	kubeConfig := kubeconfig.FromClusterName(commandContext.ClusterSpec.Cluster.Name)
+	deps, err := curatedpackages.NewDependenciesForPackages(ctx, kubeConfig)
+	if err != nil {
+		logger.MarkFail("Error when installing curated packages on workload cluster; please install through eksctl anywhere install command", "error", err)
+	}
+	chart := commandContext.ClusterSpec.VersionsBundle.VersionsBundle.PackageController.HelmChart
+	pc := curatedpackages.NewPackageControllerClient(deps.Helm, kubeConfig, chart.Image(), chart.Name, chart.Tag())
+	err = pc.InstallController(ctx)
+	if err != nil {
+		logger.MarkFail("Error when installing curated packages controller on workload cluster; please install through eksctl anywhere install command", "error", err)
+	}
+	return nil
+}
+
+func (s *InstallPackageControllerTask) Name() string {
+	return "install-package-controller"
+}
+
+func installCuratedPackages(ctx context.Context, clusterName string, packagesLocation string) {
+	kubeConfig := kubeconfig.FromClusterName(clusterName)
+	deps, err := curatedpackages.NewDependenciesForPackages(ctx, kubeConfig)
+	if err != nil {
+		logger.MarkFail("Error when installing curated packages on workload cluster; please install through eksctl anywhere create command", "error", err)
+	}
+	packageClient := curatedpackages.NewPackageClient(
+		nil,
+		deps.Kubectl,
+	)
+	err = packageClient.CreatePackages(ctx, packagesLocation, kubeConfig)
+	if err != nil {
+		logger.MarkFail("Error when installing curated packages on workload cluster; please install through eksctl anywhere create command", "error", err)
+	}
+}
