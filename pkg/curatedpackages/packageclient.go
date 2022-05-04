@@ -215,7 +215,7 @@ func (pc *PackageClient) DescribePackages(ctx context.Context, args []string, ku
 	if len(stdOut.Bytes()) == 0 {
 		return errors.New("no resources found")
 	}
-	fmt.Println(&stdOut)
+	fmt.Print(&stdOut)
 	return nil
 }
 
