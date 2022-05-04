@@ -58,6 +58,6 @@ func getResources(ctx context.Context, resourceType string, output string, args 
 	if len(stdOut.Bytes()) == 0 {
 		return fmt.Errorf("No resources found in %v namespace\n", constants.EksaPackagesName)
 	}
-	fmt.Print(&stdOut)
+	fmt.Println(&stdOut)
 	return nil
 }

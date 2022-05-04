@@ -1527,21 +1527,3 @@ func (k *Kubectl) Delete(ctx context.Context, resourceType, name, namespace, kub
 func (k *Kubectl) CreateFromYaml(ctx context.Context, yaml []byte, opts ...string) (bytes.Buffer, error) {
 	return k.ExecuteWithStdin(ctx, yaml, opts...)
 }
-
-func (k *Kubectl) DeletePackages(ctx context.Context, opts ...KubectlOpt) error {
-	params := []string{
-		"delete", "packages",
-	}
-	applyOpts(&params, opts...)
-	_, err := k.Execute(ctx, params...)
-	return err
-}
-
-func (k *Kubectl) DescribePackages(ctx context.Context, opts ...KubectlOpt) (bytes.Buffer, error) {
-	params := []string{
-		"describe", "packages",
-	}
-	applyOpts(&params, opts...)
-	stdOut, err := k.Execute(ctx, params...)
-	return stdOut, err
-}

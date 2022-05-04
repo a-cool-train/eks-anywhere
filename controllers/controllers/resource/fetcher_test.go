@@ -5,9 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/go-logr/logr"
-
 	cloudstackv1 "github.com/aws/cluster-api-provider-cloudstack/api/v1beta1"
+	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
 	etcdv1 "github.com/mrajashree/etcdadm-controller/api/v1beta1"
 	corev1 "k8s.io/api/core/v1"
