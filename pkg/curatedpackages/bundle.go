@@ -7,8 +7,6 @@ import (
 
 	"sigs.k8s.io/yaml"
 
-	"sigs.k8s.io/yaml"
-
 	packagesv1 "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	"github.com/aws/eks-anywhere/pkg/constants"
