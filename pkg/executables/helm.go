@@ -74,7 +74,7 @@ func (h *Helm) InstallChartFromName(ctx context.Context, ociURI, kubeConfig, nam
 
 func (h *Helm) PushChart(ctx context.Context, chart, registry string) error {
 	logger.Info("Pushing", "chart", chart)
-	_, err := h.executable.Command(ctx, "push", chart, registry, insecureSkipVerifyFlag).WithEnvVars(helmTemplateEnvVars).Run()
+	_, err := h.executable.Command(ctx, "push", chart, registry).WithEnvVars(helmTemplateEnvVars).Run()
 	return err
 }
 

@@ -9,6 +9,8 @@ import (
 	"github.com/aws/eks-anywhere/pkg/manifests"
 	releasev1 "github.com/aws/eks-anywhere/release/api/v1alpha1"
 	eksdv1 "github.com/aws/eks-distro-build-tooling/release/api/v1alpha1"
+	"oras.land/oras-go/pkg/content"
+	"oras.land/oras-go/pkg/oras"
 	"sigs.k8s.io/yaml"
 )
 
@@ -55,6 +57,7 @@ func (r *PackagesReader) ReadChartsFromBundles(ctx context.Context, b *releasev1
 		packages, err := FetchPackages(vb, ctx, art)
 		if err != nil {
 			fmt.Sprintf("error finding packages: %v", err)
+			continue
 		}
 		images = append(images, packages...)
 	}
@@ -99,4 +102,22 @@ func Pull(ctx context.Context, art string) ([]byte, error) {
 	}
 
 	return data, nil
+}
+
+func Push(ctx context.Context, art, ref, fileName string, fileContent []byte) error {
+	registry, err := content.NewRegistry(content.RegistryOptions{})
+	if err != nil {
+		return fmt.Errorf("creating registry: %w", err)
+	}
+	memoryStore := content.NewMemory()
+	desc, err := memoryStore.Add(fileName, "", fileContent)
+
+	manifest, manifestDesc, config, configDesc, err := content.GenerateManifestAndConfig(nil, nil, desc)
+	memoryStore.Set(configDesc, config)
+	err = memoryStore.StoreManifest(ref, manifestDesc, manifest)
+
+	fmt.Printf("Pushing %s to %s...\n", fileName, ref)
+	desc, err = oras.Copy(ctx, memoryStore, ref, registry, "")
+	fmt.Printf("Pushed to %s with digest %s\n", ref, desc.Digest)
+	return nil
 }

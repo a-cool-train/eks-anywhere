@@ -13,11 +13,16 @@ type Import struct {
 	Bundles            *releasev1.Bundles
 	ImageMover         ImageMover
 	ChartImporter      ChartImporter
+	BundlePusher       BundlePusher
 	TmpArtifactsFolder string
 }
 
 type ChartImporter interface {
 	Import(ctx context.Context, charts ...string) error
+}
+
+type BundlePusher interface {
+	Push(ctx context.Context, bundles *releasev1.Bundles)
 }
 
 func (i Import) Run(ctx context.Context) error {
@@ -31,6 +36,8 @@ func (i Import) Run(ctx context.Context) error {
 	}
 
 	charts := i.Reader.ReadChartsFromBundles(ctx, i.Bundles)
+
+	i.BundlePusher.Push(ctx, i.Bundles)
 
 	if err := i.ChartImporter.Import(ctx, artifactNames(charts)...); err != nil {
 		return err

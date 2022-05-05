@@ -73,7 +73,7 @@ func (c downloadImagesCommand) Run(ctx context.Context) error {
 	eksaToolsImageFile := filepath.Join(downloadFolder, eksaToolsImageTarFile)
 
 	downloadArtifacts := artifacts.Download{
-		Reader: fetchReader(deps.ManifestReader),
+		Reader: fetchReader(deps.ManifestReader, c.includePackages),
 		BundlesImagesDownloader: docker.NewImageMover(
 			docker.NewOriginalRegistrySource(dockerClient),
 			docker.NewDiskDestination(dockerClient, imagesFile),
@@ -106,8 +106,8 @@ func packagerForFile(file string) packager {
 	}
 }
 
-func fetchReader(reader *manifests.Reader) artifacts.Reader {
-	if downloadImagesRunner.includePackages {
+func fetchReader(reader *manifests.Reader, includePackages bool) artifacts.Reader {
+	if includePackages {
 		return curatedpackages.NewPackageReader(reader)
 	}
 	return reader

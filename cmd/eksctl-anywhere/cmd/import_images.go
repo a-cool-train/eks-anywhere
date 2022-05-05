@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"context"
+	"github.com/aws/eks-anywhere/pkg/oras"
 	"log"
 	"path/filepath"
 
@@ -48,6 +49,7 @@ func init() {
 	if err := importImagesCmd.MarkFlagRequired("bundles"); err != nil {
 		log.Fatalf("Cannot mark 'bundles' as required: %s", err)
 	}
+	importImagesCmd.Flags().BoolVar(&importImagesCommand.includePackages, "include-packages", false, "Flag to indicate inclusion of curated packages in imported images")
 }
 
 var importImagesCommand = ImportImagesCommand{}
@@ -56,6 +58,7 @@ type ImportImagesCommand struct {
 	InputFile        string
 	RegistryEndpoint string
 	BundlesFile      string
+	includePackages  bool
 }
 
 func (c ImportImagesCommand) Call(ctx context.Context) error {
@@ -110,7 +113,7 @@ func (c ImportImagesCommand) Call(ctx context.Context) error {
 
 	imagesFile := filepath.Join(artifactsFolder, "images.tar")
 	importArtifacts := artifacts.Import{
-		Reader:  deps.ManifestReader,
+		Reader:  fetchReader(deps.ManifestReader, c.includePackages),
 		Bundles: bundle,
 		ImageMover: docker.NewImageMover(
 			docker.NewDiskSource(dockerClient, imagesFile),
@@ -123,6 +126,7 @@ func (c ImportImagesCommand) Call(ctx context.Context) error {
 			password,
 		),
 		TmpArtifactsFolder: artifactsFolder,
+		BundlePusher:       oras.NewFileRegistryImporter(c.RegistryEndpoint, username, password, artifactsFolder),
 	}
 
 	return importArtifacts.Run(ctx)

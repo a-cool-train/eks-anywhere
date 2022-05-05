@@ -32,6 +32,7 @@ func (i *ChartRegistryImporter) Import(ctx context.Context, charts ...string) er
 	}
 
 	for _, chart := range uniqueCharts(charts) {
+		fmt.Println("Chart: " + chart)
 		pushChartURL := oci.ChartPushURL(chart)
 		pushChartURL = urls.ReplaceHost(pushChartURL, i.registry)
 

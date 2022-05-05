@@ -23,8 +23,8 @@ func NewBundleDownloader(dstFolder string) *BundleDownloader {
 }
 
 func (bd *BundleDownloader) SaveManifests(ctx context.Context, bundles *releasev1.Bundles) {
-	artifacts := bd.ReadFilesFromBundles(bundles)
-	for _, a := range uniqueCharts(artifacts) {
+	artifacts := ReadFilesFromBundles(bundles)
+	for _, a := range UniqueCharts(artifacts) {
 		data, err := curatedpackages.Pull(ctx, a)
 		if err != nil {
 			fmt.Sprintf("unable to download bundle %v", err)
@@ -35,7 +35,7 @@ func (bd *BundleDownloader) SaveManifests(ctx context.Context, bundles *releasev
 	}
 }
 
-func uniqueCharts(charts []string) []string {
+func UniqueCharts(charts []string) []string {
 	c := types.SliceToLookup(charts).ToSlice()
 	// TODO: maybe optimize this, avoiding the sort and just following the same order as the original slice
 	sort.Strings(c)
@@ -50,7 +50,7 @@ func writeToFile(dir string, packageName string, content []byte) error {
 	return nil
 }
 
-func (bd *BundleDownloader) ReadFilesFromBundles(bundles *releasev1.Bundles) []string {
+func ReadFilesFromBundles(bundles *releasev1.Bundles) []string {
 	var files []string
 	for _, vb := range bundles.Spec.VersionsBundles {
 		files = append(files, curatedpackages.GetPackageBundle(vb))
