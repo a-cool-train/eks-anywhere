@@ -56,6 +56,7 @@ func (c *Create) Run(ctx context.Context, clusterSpec *cluster.Spec, validator i
 		Writer:         c.writer,
 		Validations:    validator,
 		EksdInstaller:  c.eksdInstaller,
+		Packages:       packagesLocation,
 	}
 
 	if clusterSpec.ManagementCluster != nil {
@@ -399,7 +400,7 @@ func (s *InstallEksaComponentsTask) Checkpoint() *task.CompletedTask {
 func (s *InstallAddonManagerTask) Run(ctx context.Context, commandContext *task.CommandContext) task.Task {
 	logger.Info("Installing AddonManager and GitOps Toolkit on workload cluster")
 
-	err := commandContext.AddonManager.InstallGitOps(ctx, commandContext.WorkloadCluster, commandContext.ClusterSpec, commandContext.Provider.DatacenterConfig(commandContext.ClusterSpec), commandContext.Provider.MachineConfigs(commandContext.ClusterSpec))
+	err := commandContext.AddonManager.InstallGitOps(ctx, commandContext.WorkloadCluster, commandContext.ClusterSpec, commandContext.Provider.DatacenterConfig(commandContext.ClusterSpec), commandContext.Provider.MachineConfigs(commandContext.ClusterSpec), commandContext.Packages)
 	if err != nil {
 		logger.MarkFail("Error when installing GitOps toolkits on workload cluster; EKS-A will continue with cluster creation, but GitOps will not be enabled", "error", err)
 		return &WriteClusterConfigTask{}

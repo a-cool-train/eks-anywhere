@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"path"
 	"path/filepath"
 	"strings"
@@ -117,7 +118,7 @@ func (f *FluxAddonClient) ForceReconcileGitRepo(ctx context.Context, cluster *ty
 // commits the manifests for both eks-a cluster and flux components to the default branch at the specified path,
 // and installs the Flux components. Then it configures the target cluster to synchronize with the specified path
 // inside the repository.
-func (f *FluxAddonClient) InstallGitOps(ctx context.Context, cluster *types.Cluster, clusterSpec *cluster.Spec, datacenterConfig providers.DatacenterConfig, machineConfigs []providers.MachineConfig) error {
+func (f *FluxAddonClient) InstallGitOps(ctx context.Context, cluster *types.Cluster, clusterSpec *cluster.Spec, datacenterConfig providers.DatacenterConfig, machineConfigs []providers.MachineConfig, packages string) error {
 	if f.shouldSkipFlux() {
 		logger.Info("GitOps field not specified, bootstrap flux skipped")
 		return nil
@@ -127,10 +128,11 @@ func (f *FluxAddonClient) InstallGitOps(ctx context.Context, cluster *types.Clus
 		clusterSpec:      clusterSpec,
 		datacenterConfig: datacenterConfig,
 		machineConfigs:   machineConfigs,
+		packagesPath:     packages,
 	}
 
 	if clusterSpec.FluxConfig.Spec.Github != nil {
-		err := f.installGitOpsGithub(ctx, cluster, fc, clusterSpec)
+		err := f.installGitOpsGithub(ctx, cluster, fc, clusterSpec, packages)
 		if err != nil {
 			return fmt.Errorf("installing GitHub gitops: %v", err)
 		}
@@ -156,7 +158,7 @@ func (f *FluxAddonClient) InstallGitOps(ctx context.Context, cluster *types.Clus
 	return nil
 }
 
-func (f *FluxAddonClient) installGitOpsGithub(ctx context.Context, cluster *types.Cluster, fc *fluxForCluster, clusterSpec *cluster.Spec) error {
+func (f *FluxAddonClient) installGitOpsGithub(ctx context.Context, cluster *types.Cluster, fc *fluxForCluster, clusterSpec *cluster.Spec, packages string) error {
 	if err := fc.setupProviderRepository(ctx); err != nil {
 		return err
 	}
@@ -368,6 +370,7 @@ type fluxForCluster struct {
 	clusterSpec      *cluster.Spec
 	datacenterConfig providers.DatacenterConfig
 	machineConfigs   []providers.MachineConfig
+	packagesPath     string
 }
 
 // commitFluxAndClusterConfigToGit commits the cluster configuration file to the flux-managed git repository.
@@ -450,6 +453,11 @@ func (fc *fluxForCluster) writeEksaSystemFiles() error {
 		return err
 	}
 
+	logger.V(3).Info("Writing eks-a curated packages file...")
+	if err := fc.writePackages(w); err != nil {
+		return err
+	}
+
 	logger.V(3).Info("Generating eks-a kustomization file...")
 	return fc.generateEksaKustomizeFile(w)
 }
@@ -466,9 +474,21 @@ func (fc *fluxForCluster) generateClusterConfigFile(w filewriter.FileWriter) err
 	return nil
 }
 
+func (fc *fluxForCluster) writePackages(w filewriter.FileWriter) error {
+	data, err := ioutil.ReadFile(fc.packagesPath)
+	if err != nil {
+		return fmt.Errorf("could not open the file %s: %v", fc.packagesPath, err)
+	}
+	if filePath, err := w.Write(fc.packagesPath, data, filewriter.PersistentFile); err != nil {
+		return fmt.Errorf("writing eks-a curated packages file into %s: %v", filePath, err)
+	}
+	return nil
+}
+
 func (fc *fluxForCluster) generateEksaKustomizeFile(w filewriter.FileWriter) error {
 	values := map[string]string{
 		"ConfigFileName": clusterConfigFileName,
+		"Packages":       fc.packagesPath,
 	}
 	t := templater.New(w)
 	if filePath, err := t.WriteToFile(eksaKustomizeContent, values, kustomizeFileName, filewriter.PersistentFile); err != nil {

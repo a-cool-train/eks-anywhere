@@ -452,17 +452,17 @@ func (mr *MockAddonManagerMockRecorder) ForceReconcileGitRepo(arg0, arg1, arg2 i
 }
 
 // InstallGitOps mocks base method.
-func (m *MockAddonManager) InstallGitOps(arg0 context.Context, arg1 *types.Cluster, arg2 *cluster.Spec, arg3 providers.DatacenterConfig, arg4 []providers.MachineConfig) error {
+func (m *MockAddonManager) InstallGitOps(arg0 context.Context, arg1 *types.Cluster, arg2 *cluster.Spec, arg3 providers.DatacenterConfig, arg4 []providers.MachineConfig, arg5 string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InstallGitOps", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "InstallGitOps", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // InstallGitOps indicates an expected call of InstallGitOps.
-func (mr *MockAddonManagerMockRecorder) InstallGitOps(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+func (mr *MockAddonManagerMockRecorder) InstallGitOps(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InstallGitOps", reflect.TypeOf((*MockAddonManager)(nil).InstallGitOps), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InstallGitOps", reflect.TypeOf((*MockAddonManager)(nil).InstallGitOps), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
 // PauseGitOpsKustomization mocks base method.

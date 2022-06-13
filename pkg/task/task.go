@@ -39,6 +39,7 @@ type CommandContext struct {
 	WorkloadCluster    *types.Cluster
 	Profiler           *Profiler
 	OriginalError      error
+	Packages           string
 }
 
 func (c *CommandContext) SetError(err error) {
