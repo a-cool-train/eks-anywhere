@@ -494,17 +494,17 @@ func (mr *MockAddonManagerMockRecorder) ResumeGitOpsKustomization(arg0, arg1, ar
 }
 
 // UpdateGitEksaSpec mocks base method.
-func (m *MockAddonManager) UpdateGitEksaSpec(arg0 context.Context, arg1 *cluster.Spec, arg2 providers.DatacenterConfig, arg3 []providers.MachineConfig) error {
+func (m *MockAddonManager) UpdateGitEksaSpec(arg0 context.Context, arg1 *cluster.Spec, arg2 providers.DatacenterConfig, arg3 []providers.MachineConfig, arg4 string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateGitEksaSpec", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "UpdateGitEksaSpec", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateGitEksaSpec indicates an expected call of UpdateGitEksaSpec.
-func (mr *MockAddonManagerMockRecorder) UpdateGitEksaSpec(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+func (mr *MockAddonManagerMockRecorder) UpdateGitEksaSpec(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGitEksaSpec", reflect.TypeOf((*MockAddonManager)(nil).UpdateGitEksaSpec), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGitEksaSpec", reflect.TypeOf((*MockAddonManager)(nil).UpdateGitEksaSpec), arg0, arg1, arg2, arg3, arg4)
 }
 
 // UpdateLegacyFileStructure mocks base method.

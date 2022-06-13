@@ -33,6 +33,7 @@ const (
 	defaultEksaClusterConfigFileName     = "eksa-cluster.yaml"
 	defaultFluxPatchesFileName           = "gotk-patches.yaml"
 	defaultFluxSyncFileName              = "gotk-sync.yaml"
+	packagesPath                         = "./testdata/hello-eks-anywhere.yaml"
 )
 
 func TestFluxAddonClientInstallGitOpsOnManagementClusterWithPrexistingRepo(t *testing.T) {
@@ -103,7 +104,7 @@ func TestFluxAddonClientInstallGitOpsOnManagementClusterWithPrexistingRepo(t *te
 			datacenterConfig := datacenterConfig(tt.clusterName)
 			machineConfig := machineConfig(tt.clusterName)
 
-			err := f.InstallGitOps(ctx, cluster, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig})
+			err := f.InstallGitOps(ctx, cluster, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig}, packagesPath)
 			if err != nil {
 				t.Errorf("FluxAddonClient.InstallGitOps() error = %v, want nil", err)
 			}
@@ -145,7 +146,7 @@ func TestFluxAddonClientInstallGitOpsOnWorkloadClusterWithPrexistingRepo(t *test
 	datacenterConfig := datacenterConfig(clusterName)
 	machineConfig := machineConfig(clusterName)
 
-	err := f.InstallGitOps(ctx, cluster, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig})
+	err := f.InstallGitOps(ctx, cluster, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig}, packagesPath)
 	if err != nil {
 		t.Errorf("FluxAddonClient.InstallGitOps() error = %v, want nil", err)
 	}
@@ -246,7 +247,7 @@ func TestFluxAddonClientInstallGitOpsNoPrexistingRepo(t *testing.T) {
 
 			datacenterConfig := datacenterConfig(tt.clusterName)
 			machineConfig := machineConfig(tt.clusterName)
-			err := f.InstallGitOps(ctx, cluster, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig})
+			err := f.InstallGitOps(ctx, cluster, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig}, packagesPath)
 			if err != nil {
 				t.Errorf("FluxAddonClient.InstallGitOps() error = %v, want nil", err)
 			}
@@ -317,7 +318,7 @@ func TestFluxAddonClientInstallGitOpsToolkitsBareRepo(t *testing.T) {
 
 			datacenterConfig := datacenterConfig(tt.clusterName)
 			machineConfig := machineConfig(tt.clusterName)
-			err := f.InstallGitOps(ctx, cluster, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig})
+			err := f.InstallGitOps(ctx, cluster, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig}, packagesPath)
 			if err != nil {
 				t.Errorf("FluxAddonClient.InstallGitOpsToolkits() error = %v, want nil", err)
 			}
@@ -383,7 +384,7 @@ func TestFluxAddonClientUpdateGitRepoEksaSpecLocalRepoNotExists(t *testing.T) {
 
 	datacenterConfig := datacenterConfig(clusterName)
 	machineConfig := machineConfig(clusterName)
-	err := f.UpdateGitEksaSpec(ctx, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig})
+	err := f.UpdateGitEksaSpec(ctx, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig}, packagesPath)
 	if err != nil {
 		t.Errorf("FluxAddonClient.UpdateGitEksaSpec() error = %v, want nil", err)
 	}
@@ -421,7 +422,7 @@ func TestFluxAddonClientUpdateGitRepoEksaSpecLocalRepoExists(t *testing.T) {
 
 	datacenterConfig := datacenterConfig(clusterName)
 	machineConfig := machineConfig(clusterName)
-	err := f.UpdateGitEksaSpec(ctx, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig})
+	err := f.UpdateGitEksaSpec(ctx, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig}, packagesPath)
 	if err != nil {
 		t.Errorf("FluxAddonClient.UpdateGitEksaSpec() error = %v, want nil", err)
 	}
@@ -440,7 +441,7 @@ func TestFluxAddonClientUpdateGitRepoEksaSpecErrorCloneRepo(t *testing.T) {
 
 	datacenterConfig := datacenterConfig(clusterName)
 	machineConfig := machineConfig(clusterName)
-	err := f.UpdateGitEksaSpec(ctx, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig})
+	err := f.UpdateGitEksaSpec(ctx, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig}, packagesPath)
 	if err == nil {
 		t.Errorf("FluxAddonClient.UpdateGitEksaSpec() error = nil, want failed to cloneIfExists repo")
 	}
@@ -458,7 +459,7 @@ func TestFluxAddonClientUpdateGitRepoEksaSpecErrorSwitchBranch(t *testing.T) {
 
 	datacenterConfig := datacenterConfig(clusterName)
 	machineConfig := machineConfig(clusterName)
-	err := f.UpdateGitEksaSpec(ctx, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig})
+	err := f.UpdateGitEksaSpec(ctx, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig}, packagesPath)
 	if err == nil {
 		t.Errorf("FluxAddonClient.UpdateGitEksaSpec() error = nil, want failed to switch branch")
 	}
@@ -477,7 +478,7 @@ func TestFluxAddonClientUpdateGitRepoEksaSpecErrorAddFile(t *testing.T) {
 
 	datacenterConfig := datacenterConfig(clusterName)
 	machineConfig := machineConfig(clusterName)
-	err := f.UpdateGitEksaSpec(ctx, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig})
+	err := f.UpdateGitEksaSpec(ctx, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig}, packagesPath)
 	if err == nil {
 		t.Errorf("FluxAddonClient.UpdateGitEksaSpec() error = nil, want failed to add file")
 	}
@@ -497,7 +498,7 @@ func TestFluxAddonClientUpdateGitRepoEksaSpecErrorCommit(t *testing.T) {
 
 	datacenterConfig := datacenterConfig(clusterName)
 	machineConfig := machineConfig(clusterName)
-	err := f.UpdateGitEksaSpec(ctx, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig})
+	err := f.UpdateGitEksaSpec(ctx, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig}, packagesPath)
 	if err == nil {
 		t.Errorf("FluxAddonClient.UpdateGitEksaSpec() error = nil, want failed to commit code")
 	}
@@ -518,7 +519,7 @@ func TestFluxAddonClientUpdateGitRepoEksaSpecErrorPushAfterRetry(t *testing.T) {
 
 	datacenterConfig := datacenterConfig(clusterName)
 	machineConfig := machineConfig(clusterName)
-	err := f.UpdateGitEksaSpec(ctx, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig})
+	err := f.UpdateGitEksaSpec(ctx, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig}, packagesPath)
 	if err == nil {
 		t.Errorf("FluxAddonClient.UpdateGitEksaSpec() error = nil, want failed to push code")
 	}
@@ -533,7 +534,7 @@ func TestFluxAddonClientUpdateGitRepoEksaSpecSkip(t *testing.T) {
 
 	datacenterConfig := datacenterConfig(clusterName)
 	machineConfig := machineConfig(clusterName)
-	err := f.UpdateGitEksaSpec(ctx, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig})
+	err := f.UpdateGitEksaSpec(ctx, clusterSpec, datacenterConfig, []providers.MachineConfig{machineConfig}, packagesPath)
 	if err != nil {
 		t.Errorf("FluxAddonClient.UpdateGitEksaSpec() error = %v, want nil", err)
 	}

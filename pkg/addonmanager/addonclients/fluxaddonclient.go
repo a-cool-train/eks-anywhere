@@ -132,7 +132,7 @@ func (f *FluxAddonClient) InstallGitOps(ctx context.Context, cluster *types.Clus
 	}
 
 	if clusterSpec.FluxConfig.Spec.Github != nil {
-		err := f.installGitOpsGithub(ctx, cluster, fc, clusterSpec, packages)
+		err := f.installGitOpsGithub(ctx, cluster, fc, clusterSpec)
 		if err != nil {
 			return fmt.Errorf("installing GitHub gitops: %v", err)
 		}
@@ -158,7 +158,7 @@ func (f *FluxAddonClient) InstallGitOps(ctx context.Context, cluster *types.Clus
 	return nil
 }
 
-func (f *FluxAddonClient) installGitOpsGithub(ctx context.Context, cluster *types.Cluster, fc *fluxForCluster, clusterSpec *cluster.Spec, packages string) error {
+func (f *FluxAddonClient) installGitOpsGithub(ctx context.Context, cluster *types.Cluster, fc *fluxForCluster, clusterSpec *cluster.Spec) error {
 	if err := fc.setupProviderRepository(ctx); err != nil {
 		return err
 	}
@@ -253,7 +253,7 @@ func (f *FluxAddonClient) ResumeGitOpsKustomization(ctx context.Context, cluster
 	})
 }
 
-func (f *FluxAddonClient) UpdateGitEksaSpec(ctx context.Context, clusterSpec *cluster.Spec, datacenterConfig providers.DatacenterConfig, machineConfigs []providers.MachineConfig) error {
+func (f *FluxAddonClient) UpdateGitEksaSpec(ctx context.Context, clusterSpec *cluster.Spec, datacenterConfig providers.DatacenterConfig, machineConfigs []providers.MachineConfig, packages string) error {
 	if f.shouldSkipFlux() {
 		logger.Info("GitOps field not specified, update git repo skipped")
 		return nil
@@ -264,6 +264,7 @@ func (f *FluxAddonClient) UpdateGitEksaSpec(ctx context.Context, clusterSpec *cl
 		clusterSpec:      clusterSpec,
 		datacenterConfig: datacenterConfig,
 		machineConfigs:   machineConfigs,
+		packagesPath:     packages,
 	}
 
 	if err := fc.syncGitRepo(ctx); err != nil {
@@ -475,20 +476,25 @@ func (fc *fluxForCluster) generateClusterConfigFile(w filewriter.FileWriter) err
 }
 
 func (fc *fluxForCluster) writePackages(w filewriter.FileWriter) error {
+	if fc.packagesPath == "" {
+		return nil
+	}
 	data, err := ioutil.ReadFile(fc.packagesPath)
 	if err != nil {
 		return fmt.Errorf("could not open the file %s: %v", fc.packagesPath, err)
 	}
-	if filePath, err := w.Write(fc.packagesPath, data, filewriter.PersistentFile); err != nil {
+	fileName := filepath.Base(fc.packagesPath)
+	if filePath, err := w.Write(fileName, data, filewriter.PersistentFile); err != nil {
 		return fmt.Errorf("writing eks-a curated packages file into %s: %v", filePath, err)
 	}
 	return nil
 }
 
 func (fc *fluxForCluster) generateEksaKustomizeFile(w filewriter.FileWriter) error {
+	packagesFileName := filepath.Base(fc.packagesPath)
 	values := map[string]string{
 		"ConfigFileName": clusterConfigFileName,
-		"Packages":       fc.packagesPath,
+		"Packages":       packagesFileName,
 	}
 	t := templater.New(w)
 	if filePath, err := t.WriteToFile(eksaKustomizeContent, values, kustomizeFileName, filewriter.PersistentFile); err != nil {

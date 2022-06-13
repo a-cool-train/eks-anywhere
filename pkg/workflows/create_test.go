@@ -201,7 +201,7 @@ func (c *createTestSetup) expectInstallAddonManager() {
 		c.provider.EXPECT().MachineConfigs(c.clusterSpec).Return(c.machineConfigs),
 
 		c.addonManager.EXPECT().InstallGitOps(
-			c.ctx, c.workloadCluster, c.clusterSpec, c.datacenterConfig, c.machineConfigs),
+			c.ctx, c.workloadCluster, c.clusterSpec, c.datacenterConfig, c.machineConfigs, ""),
 	)
 }
 

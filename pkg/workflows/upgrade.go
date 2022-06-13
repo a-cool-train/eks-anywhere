@@ -509,7 +509,7 @@ func (s *updateClusterAndGitResources) Run(ctx context.Context, commandContext *
 	}
 
 	logger.Info("Updating Git Repo with new EKS-A cluster spec")
-	err = commandContext.AddonManager.UpdateGitEksaSpec(ctx, commandContext.ClusterSpec, datacenterConfig, machineConfigs)
+	err = commandContext.AddonManager.UpdateGitEksaSpec(ctx, commandContext.ClusterSpec, datacenterConfig, machineConfigs, "")
 	if err != nil {
 		commandContext.SetError(err)
 		return &CollectDiagnosticsTask{}
