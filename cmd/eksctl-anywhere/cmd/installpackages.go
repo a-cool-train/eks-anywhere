@@ -83,7 +83,7 @@ func installPackages(ctx context.Context, args []string) error {
 	}
 
 	packages := curatedpackages.NewPackageClient(
-		deps.Kubectl,
+		curatedpackages.WithKubectl(deps.Kubectl),
 		curatedpackages.WithBundle(bundle),
 		curatedpackages.WithCustomConfigs(ipo.customConfigs),
 		curatedpackages.WithShowOptions(ipo.showOptions),

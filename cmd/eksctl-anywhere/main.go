@@ -2,13 +2,12 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"os/signal"
-	"syscall"
-
 	"github.com/aws/eks-anywhere/cmd/eksctl-anywhere/cmd"
 	"github.com/aws/eks-anywhere/pkg/eksctl"
 	"github.com/aws/eks-anywhere/pkg/logger"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {

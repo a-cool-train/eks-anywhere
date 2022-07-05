@@ -5,7 +5,8 @@ import (
 )
 
 type getPackageOptions struct {
-	output string
+	output     string
+	useLibrary bool
 }
 
 var gpo = &getPackageOptions{}
@@ -13,6 +14,7 @@ var gpo = &getPackageOptions{}
 func init() {
 	getCmd.AddCommand(getPackageCommand)
 	getPackageCommand.Flags().StringVarP(&gpo.output, "output", "o", "", "Specifies the output format (valid option: json, yaml)")
+	getPackageCommand.Flags().BoolVarP(&gpo.useLibrary, "use-library", "u", false, "Specifies whether to use library or container")
 }
 
 var getPackageCommand = &cobra.Command{
@@ -23,6 +25,6 @@ var getPackageCommand = &cobra.Command{
 	PreRunE:      preRunPackages,
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return getResources(cmd.Context(), "packages", gpo.output, args)
+		return getResources(cmd.Context(), "packages", gpo.output, args, gpo.useLibrary)
 	},
 }

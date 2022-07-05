@@ -34,7 +34,7 @@ func deleteResources(ctx context.Context, args []string) error {
 		return fmt.Errorf("unable to initialize executables: %v", err)
 	}
 	packages := curatedpackages.NewPackageClient(
-		deps.Kubectl,
+		curatedpackages.WithKubectl(deps.Kubectl),
 	)
 
 	err = packages.DeletePackages(ctx, args, kubeConfig)

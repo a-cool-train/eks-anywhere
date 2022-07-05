@@ -3,15 +3,13 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"log"
-
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
-
 	"github.com/aws/eks-anywhere/pkg/constants"
 	"github.com/aws/eks-anywhere/pkg/features"
 	"github.com/aws/eks-anywhere/pkg/kubeconfig"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+	"log"
 )
 
 var getCmd = &cobra.Command{
@@ -36,7 +34,7 @@ func preRunPackages(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func getResources(ctx context.Context, resourceType string, output string, args []string) error {
+func getResources(ctx context.Context, resourceType string, output string, args []string, useLibrary bool) error {
 	kubeConfig := kubeconfig.FromEnvironment()
 
 	deps, err := NewDependenciesForPackages(ctx, WithMountPaths(kubeConfig))

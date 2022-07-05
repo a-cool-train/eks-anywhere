@@ -36,10 +36,8 @@ type PackageClient struct {
 	showOptions    bool
 }
 
-func NewPackageClient(kubectl KubectlRunner, options ...PackageClientOpt) *PackageClient {
-	pc := &PackageClient{
-		kubectl: kubectl,
-	}
+func NewPackageClient(options ...PackageClientOpt) *PackageClient {
+	pc := &PackageClient{}
 	for _, o := range options {
 		o(pc)
 	}
@@ -244,5 +242,11 @@ func WithCustomConfigs(customConfigs []string) func(*PackageClient) {
 func WithShowOptions(showOptions bool) func(client *PackageClient) {
 	return func(config *PackageClient) {
 		config.showOptions = showOptions
+	}
+}
+
+func WithKubectl(kubectl KubectlRunner) func(client *PackageClient) {
+	return func(config *PackageClient) {
+		config.kubectl = kubectl
 	}
 }
