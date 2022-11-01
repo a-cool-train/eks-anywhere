@@ -41,13 +41,13 @@ func (pi *Installer) InstallCuratedPackages(ctx context.Context) error {
 	PrintLicense()
 	err := pi.installPackagesController(ctx)
 	if err != nil {
-		logger.MarkFail("Error when installing curated packages on workload cluster; please install through eksctl anywhere install packagecontroller command", "error", err)
+		logger.MarkWarning("Error when installing curated packages on cluster; please install through eksctl anywhere install packagecontroller command", "error", err)
 		return err
 	}
 
 	err = pi.installPackages(ctx)
 	if err != nil {
-		logger.MarkFail("Error when installing curated packages on workload cluster; please install through eksctl anywhere create packages command", "error", err)
+		logger.MarkWarning("Error when installing curated packages on cluster; please install through eksctl anywhere create packages command", "error", err)
 		return err
 	}
 
