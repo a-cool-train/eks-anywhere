@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"context"
+	"fmt"
+	"github.com/aws/eks-anywhere/pkg/manifests/bundles"
 
 	"github.com/aws/eks-anywhere/pkg/cluster"
 	"github.com/aws/eks-anywhere/pkg/dependencies"
@@ -36,8 +38,24 @@ func getKubeconfigPath(clusterName, override string) string {
 
 func NewDependenciesForPackages(ctx context.Context, opts ...PackageOpt) (*dependencies.Dependencies, error) {
 	config := New(opts...)
+	factory, err := dependencies.NewFactory().WithManifestReader().Build(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize factory %v", err)
+	}
+	if config.bundlesOverride != "" {
+		eksaBundles, err := bundles.Read(factory.ManifestReader, config.bundlesOverride)
+		if err != nil {
+			return nil, fmt.Errorf("retrieving executable tools image from bundle in dependency factory %v", err)
+		}
+		// Note: Currently using the first available version of the cli tools
+		// This is because the binaries bundled are all the same version hence no compatibility concerns
+		// In case, there is a change to this behavior, there might be a need to reassess this item
+		image := eksaBundles.Spec.VersionsBundles[0].Eksa.CliTools.VersionedImage()
+		factory.UseExecutableImage(image)
+	}
 	return dependencies.NewFactory().
 		WithExecutableMountDirs(config.mountPaths...).
+		WithCustomExecutableImage(config.bundlesOverride).
 		WithExecutableBuilder().
 		WithManifestReader().
 		WithKubectl().
@@ -47,14 +65,19 @@ func NewDependenciesForPackages(ctx context.Context, opts ...PackageOpt) (*depen
 		Build(ctx)
 }
 
+func UseBundlesOverride(bundlesOverride string) {
+
+}
+
 type PackageOpt func(*PackageConfig)
 
 type PackageConfig struct {
-	registryName string
-	kubeVersion  string
-	kubeConfig   string
-	mountPaths   []string
-	spec         *cluster.Spec
+	registryName    string
+	kubeVersion     string
+	kubeConfig      string
+	mountPaths      []string
+	spec            *cluster.Spec
+	bundlesOverride string
 }
 
 func New(options ...PackageOpt) *PackageConfig {
@@ -92,5 +115,11 @@ func WithClusterSpec(spec *cluster.Spec) func(config *PackageConfig) {
 func WithKubeConfig(kubeConfig string) func(*PackageConfig) {
 	return func(config *PackageConfig) {
 		config.kubeConfig = kubeConfig
+	}
+}
+
+func WithBundlesOverride(bundlesOverride string) func(*PackageConfig) {
+	return func(config *PackageConfig) {
+		config.bundlesOverride = bundlesOverride
 	}
 }

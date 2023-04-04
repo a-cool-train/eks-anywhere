@@ -8,6 +8,6 @@ type Info struct {
 
 func Get() Info {
 	return Info{
-		GitVersion: gitVersion,
+		GitVersion: "v0.0.0-dev",
 	}
 }

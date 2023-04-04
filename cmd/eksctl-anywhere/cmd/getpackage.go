@@ -12,8 +12,9 @@ type getPackageOptions struct {
 	output string
 	// kubeConfig is an optional kubeconfig file to use when querying an
 	// existing cluster.
-	kubeConfig  string
-	clusterName string
+	kubeConfig      string
+	clusterName     string
+	bundlesOverride string
 }
 
 var gpo = &getPackageOptions{}
@@ -25,6 +26,9 @@ func init() {
 		"Specifies the output format (valid option: json, yaml)")
 	getPackageCommand.Flags().StringVar(&gpo.kubeConfig, "kubeconfig", "",
 		"Path to an optional kubeconfig file.")
+	getPackageCommand.Flags().StringVar(&gpo.bundlesOverride, "bundles-override", "",
+		"Override default Bundles manifest (not recommended)")
+
 	getPackageCommand.Flags().StringVar(&gpo.clusterName, "cluster", "",
 		"Cluster to get list of packages.")
 	if err := getPackageCommand.MarkFlagRequired("cluster"); err != nil {
@@ -44,6 +48,6 @@ var getPackageCommand = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		return getResources(cmd.Context(), "packages", gpo.output, kubeConfig, gpo.clusterName, args)
+		return getResources(cmd.Context(), "packages", gpo.output, kubeConfig, gpo.clusterName, gpo.bundlesOverride, args)
 	},
 }

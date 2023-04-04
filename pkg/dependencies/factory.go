@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/aws/eks-anywhere/pkg/manifests/bundles"
 	"net/http"
 	"os"
 	"time"
@@ -230,6 +231,35 @@ func (f *Factory) WithExecutableImage() *Factory {
 		}
 
 		f.executablesConfig.image = bundles.DefaultEksAToolsImage().VersionedImage()
+		return nil
+	})
+
+	return f
+}
+
+func (f *Factory) WithCustomExecutableImage(bundlesOverride string) *Factory {
+	f.WithManifestReader()
+
+	f.buildSteps = append(f.buildSteps, func(ctx context.Context) error {
+		if f.executablesConfig.image != "" {
+			return nil
+		}
+
+		logger.V(0).Info("bundlesOverride: " + bundlesOverride)
+		if bundlesOverride == "" {
+			f.WithExecutableImage()
+			return nil
+		}
+		bundles, err := bundles.Read(f.dependencies.ManifestReader, bundlesOverride)
+		if err != nil {
+			return fmt.Errorf("retrieving executable tools image from bundle in dependency factory %v", err)
+		}
+
+		// Note: Currently using the first available version of the cli tools
+		// This is because the binaries bundled are all the same version hence no compatibility concerns
+		// In case, there is a change to this behavior, there might be a need to reassess this item
+		image := bundles.Spec.VersionsBundles[0].Eksa.CliTools.VersionedImage()
+		f.UseExecutableImage(image)
 		return nil
 	})
 
@@ -1253,6 +1283,24 @@ func (f *Factory) WithManifestReader() *Factory {
 
 	return f
 }
+
+//func (f *Factory) WithManifestReader2(bundleOverride string) *Factory {
+//	f.WithFileReader()
+//
+//	f.buildSteps = append(f.buildSteps, func(ctx context.Context) error {
+//		if f.dependencies.ManifestReader != nil {
+//			return nil
+//		}
+//
+//		if bundleOverride != "" {
+//			manifests.WithReleasesManifest()
+//		}
+//		f.dependencies.ManifestReader = manifests.NewReader(f.dependencies.FileReader)
+//		return nil
+//	})
+//
+//	return f
+//}
 
 func (f *Factory) WithUnAuthKubeClient() *Factory {
 	f.WithKubectl()
